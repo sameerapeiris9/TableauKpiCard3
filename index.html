@@ -1,59 +1,806 @@
-no_of_accounts_query = """(
-SELECT 
-    BRANCH, 
-    account_source, 
-    COUNT(*) as account_count
-FROM (
-    SELECT 
-        LNP3.LNBRCH AS BRANCH,
-        'lnp00301' AS account_source
-    FROM icbsprddt1.lnp00301 LNP3
-    INNER JOIN (
-        SELECT CU3.CUNBR, CU9.account_number_cu9
-        FROM ICBSPRDDT1.CUP00301 CU3
-        INNER JOIN (
-            SELECT cux1cs, cux1ac AS account_number_cu9
-            FROM icbsprddt1.cup00901 cu9
-            WHERE cuxrel IN ('SOW', 'JOF', 'JAF', 'OWN')
-        ) CU9 ON CU9.cux1cs = CU3.CUNBR
-    ) CUP ON CUP.account_number_cu9 = LNP3.LNNOTE
-    WHERE LNBK = 1 AND LNSTAT <> 'C'
+<!DOCTYPE html>
+<html lang="en">
 
-    UNION ALL
+<head>
 
-    SELECT 
-        tap2.DMBRCH AS BRANCH,
-        'TAP00201' AS account_source
-    FROM icbsprddt1.TAP00201 tap2
-    INNER JOIN (
-        SELECT CU3.CUNBR, CU9.account_number_cu9
-        FROM ICBSPRDDT1.CUP00301 CU3
-        INNER JOIN (
-            SELECT cux1cs, cux1ac AS account_number_cu9
-            FROM icbsprddt1.cup00901 cu9
-            WHERE cuxrel IN ('SOW', 'JOF', 'JAF', 'OWN')
-        ) CU9 ON CU9.cux1cs = CU3.CUNBR
-    ) CUP ON DECIMAL(RIGHT(CUP.account_number_cu9, 10), 10, 0) = tap2.DMACCT 
-    WHERE DMBK = 1 AND DMTYP = 1
+<meta charset="UTF-8"/>
 
-    UNION ALL
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0"/>
 
-    SELECT 
-        TAP3.TMBRCH AS BRANCH,
-        'Tmp003sq' AS account_source
-    FROM ICBSPRDDT1.Tmp003sq TAP3
-    INNER JOIN (
-        SELECT CU3.CUNBR, CU9.account_number_cu9
-        FROM ICBSPRDDT1.CUP00301 CU3
-        INNER JOIN (
-            SELECT cux1cs, cux1ac AS account_number_cu9
-            FROM icbsprddt1.cup00901 cu9
-            WHERE cuxrel IN ('SOW', 'JOF', 'JAF', 'OWN')
-        ) CU9 ON CU9.cux1cs = CU3.CUNBR
-    ) CUP ON CUP.account_number_cu9 = TAP3.TMACCT
-    WHERE TAP3.TMSTAT = 1
-) AS combined_data
-GROUP BY 
-    BRANCH, 
-    account_source
-) AS final_summary""" # <--- Wrap in () and add an alias here
+<title>Modern KPI Card</title>
+
+<!-- TABLEAU -->
+<script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.js"></script>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+html,
+body{
+
+    margin:0;
+    padding:0;
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    background:#f5f7fb;
+
+    font-family:
+        Inter,
+        Segoe UI,
+        Arial,
+        sans-serif;
+}
+
+/* =========================================================
+   WRAPPER
+========================================================= */
+
+.wrapper{
+
+    width:100%;
+    height:100%;
+
+    padding:18px;
+
+    box-sizing:border-box;
+}
+
+/* =========================================================
+   KPI CARD
+========================================================= */
+
+.kpi-card{
+
+    width:100%;
+    height:100%;
+
+    background:white;
+
+    border-radius:28px;
+
+    border:
+        1px solid #e7edf5;
+
+    box-shadow:
+        0 10px 30px rgba(15,23,42,.05);
+
+    overflow:hidden;
+
+    display:flex;
+    flex-direction:column;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+
+    padding:28px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+
+    gap:20px;
+}
+
+/* =========================================================
+   LEFT
+========================================================= */
+
+.left{
+
+    display:flex;
+    flex-direction:column;
+}
+
+.kpi-title{
+
+    font-size:15px;
+    font-weight:700;
+
+    color:#64748b;
+
+    margin-bottom:12px;
+}
+
+.hero{
+
+    font-size:52px;
+    font-weight:800;
+
+    color:#0f172a;
+
+    letter-spacing:-2px;
+
+    line-height:1;
+}
+
+.subtext{
+
+    margin-top:10px;
+
+    color:#94a3b8;
+
+    font-size:13px;
+}
+
+/* =========================================================
+   RIGHT
+========================================================= */
+
+.right{
+
+    display:flex;
+    gap:14px;
+}
+
+/* =========================================================
+   COMPARE BOX
+========================================================= */
+
+.compare{
+
+    min-width:140px;
+
+    padding:16px;
+
+    border-radius:20px;
+
+    background:#f8fafc;
+
+    border:
+        1px solid #edf2f7;
+}
+
+.compare-label{
+
+    font-size:12px;
+    font-weight:700;
+
+    color:#64748b;
+
+    margin-bottom:10px;
+
+    text-transform:uppercase;
+}
+
+.compare-value{
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    font-size:22px;
+    font-weight:800;
+}
+
+.up{
+
+    color:#10b981;
+}
+
+.down{
+
+    color:#ef4444;
+}
+
+.compare-desc{
+
+    margin-top:8px;
+
+    color:#94a3b8;
+
+    font-size:12px;
+}
+
+/* =========================================================
+   INSIGHT
+========================================================= */
+
+.insight{
+
+    margin:0 28px 18px 28px;
+
+    padding:16px 18px;
+
+    border-radius:18px;
+
+    font-size:14px;
+    font-weight:600;
+
+    display:flex;
+    align-items:center;
+
+    gap:12px;
+}
+
+.good{
+
+    background:#ecfdf5;
+
+    color:#047857;
+
+    border:
+        1px solid #d1fae5;
+}
+
+.bad{
+
+    background:#fef2f2;
+
+    color:#b91c1c;
+
+    border:
+        1px solid #fee2e2;
+}
+
+/* =========================================================
+   CHART
+========================================================= */
+
+.chart-wrap{
+
+    flex:1;
+
+    padding:
+        0 22px 22px 22px;
+}
+
+canvas{
+
+    width:100% !important;
+    height:100% !important;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <div class="kpi-card">
+
+        <!-- HEADER -->
+
+        <div class="header">
+
+            <!-- LEFT -->
+
+            <div class="left">
+
+                <div class="kpi-title"
+                     id="title">
+
+                    KPI Performance
+
+                </div>
+
+                <div class="hero"
+                     id="heroValue">
+
+                    0
+
+                </div>
+
+                <div class="subtext"
+                     id="monthText">
+
+                    Current Month
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT -->
+
+            <div class="right">
+
+                <!-- LAST MONTH -->
+
+                <div class="compare">
+
+                    <div class="compare-label">
+                        vs Last Month
+                    </div>
+
+                    <div class="compare-value"
+                         id="momCompare">
+
+                        -
+
+                    </div>
+
+                    <div class="compare-desc"
+                         id="momDesc">
+
+                        -
+                    </div>
+
+                </div>
+
+                <!-- LAST YEAR -->
+
+                <div class="compare">
+
+                    <div class="compare-label">
+                        vs Last Year End
+                    </div>
+
+                    <div class="compare-value"
+                         id="yoyCompare">
+
+                        -
+
+                    </div>
+
+                    <div class="compare-desc"
+                         id="yoyDesc">
+
+                        -
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- INSIGHT -->
+
+        <div class="insight good"
+             id="insightBox">
+
+            Budget achieved successfully
+
+        </div>
+
+        <!-- CHART -->
+
+        <div class="chart-wrap">
+
+            <canvas id="trendChart">
+
+            </canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let worksheet;
+let chart;
+
+/* =========================================================
+   FORMAT
+========================================================= */
+
+function format(v){
+
+    return new Intl.NumberFormat(
+
+        'en-US',
+
+        {
+            maximumFractionDigits:0
+        }
+
+    ).format(v || 0);
+}
+
+/* =========================================================
+   PERCENT
+========================================================= */
+
+function percentChange(current, previous){
+
+    if(!previous){
+        return 0;
+    }
+
+    return (
+
+        (
+            current - previous
+        ) / previous
+
+    ) * 100;
+}
+
+/* =========================================================
+   LOAD DATA
+========================================================= */
+
+async function loadData(){
+
+    try{
+
+        const table =
+            await worksheet.getSummaryDataAsync();
+
+        const cols =
+            table.columns.map(c =>
+                c.fieldName
+            );
+
+        console.log(cols);
+
+        /* FIELD DETECTION */
+
+        const actualIndex =
+            cols.findIndex(c =>
+                c.toLowerCase().includes('actual')
+            );
+
+        const budgetIndex =
+            cols.findIndex(c =>
+                c.toLowerCase().includes('budget')
+            );
+
+        const dateIndex =
+            cols.findIndex(c =>
+
+                c.toLowerCase().includes('date') ||
+
+                c.toLowerCase().includes('month')
+            );
+
+        if(
+            actualIndex < 0 ||
+            budgetIndex < 0 ||
+            dateIndex < 0
+        ){
+
+            console.error(
+                "Required fields not found"
+            );
+
+            return;
+        }
+
+        /* BUILD DATA */
+
+        const rows = [];
+
+        table.data.forEach(r => {
+
+            const date =
+                r[dateIndex]
+                ?.formattedValue;
+
+            const actual =
+                Number(
+                    r[actualIndex]
+                    ?.value || 0
+                );
+
+            const budget =
+                Number(
+                    r[budgetIndex]
+                    ?.value || 0
+                );
+
+            rows.push({
+
+                date,
+                actual,
+                budget
+            });
+        });
+
+        /* SORT */
+
+        rows.sort((a,b)=>
+
+            new Date(a.date) -
+            new Date(b.date)
+        );
+
+        /* CURRENT */
+
+        const current =
+            rows[rows.length - 1];
+
+        const lastMonth =
+            rows[rows.length - 2] || current;
+
+        const yearEnd =
+            rows[0] || current;
+
+        /* HERO */
+
+        document
+            .getElementById('heroValue')
+            .innerText =
+
+            format(current.actual);
+
+        document
+            .getElementById('monthText')
+            .innerText =
+
+            current.date;
+
+        /* MOM */
+
+        const mom =
+            percentChange(
+
+                current.actual,
+                lastMonth.actual
+            );
+
+        document
+            .getElementById('momCompare')
+            .innerHTML =
+
+            mom >= 0
+
+            ? `<span class="up">▲ ${mom.toFixed(1)}%</span>`
+
+            : `<span class="down">▼ ${Math.abs(mom).toFixed(1)}%</span>`;
+
+        document
+            .getElementById('momDesc')
+            .innerText =
+
+            `Previous: ${format(lastMonth.actual)}`;
+
+        /* YOY */
+
+        const yoy =
+            percentChange(
+
+                current.actual,
+                yearEnd.actual
+            );
+
+        document
+            .getElementById('yoyCompare')
+            .innerHTML =
+
+            yoy >= 0
+
+            ? `<span class="up">▲ ${yoy.toFixed(1)}%</span>`
+
+            : `<span class="down">▼ ${Math.abs(yoy).toFixed(1)}%</span>`;
+
+        document
+            .getElementById('yoyDesc')
+            .innerText =
+
+            `Year End: ${format(yearEnd.actual)}`;
+
+        /* INSIGHT */
+
+        const achieved =
+            current.actual >= current.budget;
+
+        const insight =
+            document.getElementById('insightBox');
+
+        if(achieved){
+
+            insight.className =
+                'insight good';
+
+            insight.innerHTML =
+
+                `✔ Budget achieved. Actual is ${format(current.actual)} vs Budget ${format(current.budget)}`;
+
+        }else{
+
+            insight.className =
+                'insight bad';
+
+            insight.innerHTML =
+
+                `✖ Budget not achieved. Actual is ${format(current.actual)} vs Budget ${format(current.budget)}`;
+        }
+
+        /* CHART */
+
+        renderChart(rows);
+
+    }catch(error){
+
+        console.error(error);
+    }
+}
+
+/* =========================================================
+   CHART
+========================================================= */
+
+function renderChart(rows){
+
+    const ctx =
+        document
+        .getElementById('trendChart');
+
+    const labels =
+        rows.map(r => r.date);
+
+    const actual =
+        rows.map(r => r.actual);
+
+    const budget =
+        rows.map(r => r.budget);
+
+    if(chart){
+        chart.destroy();
+    }
+
+    chart = new Chart(ctx,{
+
+        type:'line',
+
+        data:{
+
+            labels,
+
+            datasets:[
+
+                {
+                    label:'Actual',
+
+                    data:actual,
+
+                    borderColor:'#2563eb',
+
+                    backgroundColor:
+                        'rgba(37,99,235,.08)',
+
+                    borderWidth:3,
+
+                    tension:.35,
+
+                    fill:true,
+
+                    pointRadius:4,
+
+                    pointHoverRadius:6
+                },
+
+                {
+                    label:'Budget',
+
+                    data:budget,
+
+                    borderColor:'#10b981',
+
+                    borderWidth:2,
+
+                    borderDash:[6,6],
+
+                    tension:.35,
+
+                    fill:false,
+
+                    pointRadius:3
+                }
+            ]
+        },
+
+        options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false,
+
+            interaction:{
+                mode:'index',
+                intersect:false
+            },
+
+            plugins:{
+
+                legend:{
+                    display:true
+                },
+
+                tooltip:{
+
+                    backgroundColor:'#0f172a',
+
+                    padding:14,
+
+                    cornerRadius:14,
+
+                    displayColors:true
+                }
+            },
+
+            scales:{
+
+                x:{
+
+                    grid:{
+                        display:false
+                    },
+
+                    ticks:{
+                        color:'#64748b'
+                    }
+                },
+
+                y:{
+
+                    grid:{
+                        color:'#e5e7eb'
+                    },
+
+                    ticks:{
+                        color:'#64748b'
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+
+window.onload = async function(){
+
+    try{
+
+        await tableau.extensions.initializeAsync();
+
+        const dashboard =
+            tableau.extensions
+            .dashboardContent
+            .dashboard;
+
+        worksheet =
+            dashboard.worksheets[0];
+
+        console.log(
+            "WORKSHEET:",
+            worksheet.name
+        );
+
+        worksheet.addEventListener(
+
+            tableau.TableauEventType
+                .SummaryDataChanged,
+
+            loadData
+        );
+
+        loadData();
+
+    }catch(error){
+
+        console.error(error);
+    }
+};
+
+</script>
+
+</body>
+
+</html>
