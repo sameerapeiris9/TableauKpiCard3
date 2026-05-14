@@ -1,838 +1,532 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KPI Card Viz Extension</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KPI Card</title>
 
-  <!-- Tableau Extensions API -->
-  <script src="../../lib/tableau.extensions.1.latest.js"></script>
+<!-- Tableau Extensions API – adjust relative path if needed -->
+<script src="../../lib/tableau.extensions.1.latest.js"></script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+/* ─── RESET ─────────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    :root {
-      --bg: #f4f6f9;
-      --card-bg: #ffffff;
-      --border: #e2e8f0;
-      --text-primary: #0f172a;
-      --text-secondary: #64748b;
-      --text-muted: #94a3b8;
-      --accent: #0ea5e9;
-      --up: #10b981;
-      --down: #f43f5e;
-      --warning: #f59e0b;
-      --track-bg: #e2e8f0;
-      --track-fill: #94a3b8;
-      --track-over: #10b981;
-      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08);
-    }
+/* ─── TOKENS ─────────────────────────────────────────────────────────────── */
+:root{
+  --bg:       #f0f4f8;
+  --card:     #ffffff;
+  --border:   #e2e8f0;
+  --t1:       #0f172a;
+  --t2:       #475569;
+  --t3:       #94a3b8;
+  --up:       #059669;
+  --up-bg:    rgba(5,150,105,.10);
+  --dn:       #dc2626;
+  --dn-bg:    rgba(220,38,38,.10);
+  --warn:     #d97706;
+  --warn-bg:  rgba(217,119,6,.10);
+  --blue:     #0284c7;
+  --blue-bg:  rgba(2,132,199,.10);
+  --radius:   14px;
+  --shadow:   0 2px 8px rgba(15,23,42,.07),0 8px 24px rgba(15,23,42,.06);
+  --mono:     'IBM Plex Mono',monospace;
+  --sans:     'IBM Plex Sans',sans-serif;
+}
 
-    html, body {
-      width: 100%; height: 100%;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+/* ─── PAGE ───────────────────────────────────────────────────────────────── */
+html,body{
+  width:100%;height:100%;
+  font-family:var(--sans);
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
 
-    /* ── PLACEHOLDER STATE ── */
-    #placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      color: var(--text-muted);
-      font-size: 13px;
-      text-align: center;
-      padding: 40px;
-    }
-    #placeholder svg { opacity: 0.35; }
+/* ─── PLACEHOLDER ────────────────────────────────────────────────────────── */
+#ph{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  color:var(--t3);font-size:12px;text-align:center;padding:32px;
+}
+#ph strong{font-size:13px;color:var(--t2);font-weight:600;}
 
-    /* ── CARD ── */
-    #kpi-card {
-      display: none;
-      width: calc(100% - 24px);
-      max-width: 520px;
-      background: var(--card-bg);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      padding: 20px 22px 18px;
-      border: 1px solid var(--border);
-      animation: fadeUp 0.4s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+/* ─── CARD ───────────────────────────────────────────────────────────────── */
+#card{
+  display:none;
+  width:calc(100% - 20px);max-width:500px;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  padding:18px 20px 16px;
+  animation:up .35s ease both;
+}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-    /* ── HEADER ROW ── */
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 6px;
-    }
-    .card-title {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-    }
-    .card-period {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+/* ─── HEADER ─────────────────────────────────────────────────────────────── */
+.hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.hd-left{}
+.kpi-title{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t2);
+}
+.kpi-period{
+  font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--t3);margin-top:2px;
+}
 
-    /* ── MAIN VALUE ── */
-    .main-value-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .main-value {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-      font-family: 'DM Mono', monospace;
-      line-height: 1;
-    }
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--up);
-      flex-shrink: 0;
-      box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
-    }
-    .status-dot.down { background: var(--down); box-shadow: 0 0 0 3px rgba(244,63,94,0.2); }
+/* ─── HERO VALUE ─────────────────────────────────────────────────────────── */
+.hero{display:flex;align-items:center;gap:10px;margin:8px 0 14px}
+.hero-val{
+  font-family:var(--mono);font-size:34px;font-weight:600;
+  letter-spacing:-.02em;color:var(--t1);line-height:1;
+}
+.dot{
+  width:9px;height:9px;border-radius:50%;flex-shrink:0;
+  background:var(--up);box-shadow:0 0 0 3px var(--up-bg);
+}
+.dot.dn{background:var(--dn);box-shadow:0 0 0 3px var(--dn-bg);}
+.dot.neu{background:var(--t3);box-shadow:none;}
 
-    /* ── COMPARISONS ── */
-    .comparisons {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .comp-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .comp-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 400;
-      flex-shrink: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 160px;
-    }
-    .comp-badges {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-wrap: nowrap;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 5px;
-      white-space: nowrap;
-    }
-    .badge.up   { background: rgba(16,185,129,0.1); color: #059669; }
-    .badge.down { background: rgba(244,63,94,0.1);  color: #e11d48; }
-    .badge.neutral { background: rgba(100,116,139,0.1); color: var(--text-secondary); }
+/* ─── COMPARISONS ────────────────────────────────────────────────────────── */
+.comps{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.comp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.comp-lbl{font-size:10px;color:var(--t3);max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.badges{display:flex;gap:5px;flex-shrink:0;}
+.badge{
+  display:inline-flex;align-items:center;gap:2px;
+  font-size:10px;font-weight:600;font-family:var(--mono);
+  padding:2px 7px;border-radius:5px;white-space:nowrap;
+}
+.badge.up {background:var(--up-bg);color:var(--up);}
+.badge.dn {background:var(--dn-bg);color:var(--dn);}
+.badge.neu{background:var(--blue-bg);color:var(--blue);}
 
-    /* ── BUDGET ROW ── */
-    .budget-section {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .budget-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-    .budget-track-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-    .budget-track {
-      height: 5px;
-      border-radius: 99px;
-      background: var(--track-bg);
-      overflow: hidden;
-    }
-    .budget-fill {
-      height: 100%;
-      border-radius: 99px;
-      background: var(--track-fill);
-      transition: width 0.6s ease;
-      min-width: 3px;
-    }
-    .budget-fill.over   { background: var(--track-over); }
-    .budget-fill.under  { background: var(--warning); }
-    .budget-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .budget-meta .pct { font-weight: 700; font-family: 'DM Mono', monospace; }
-    .budget-meta .target-val { font-family: 'DM Mono', monospace; }
-    .budget-status {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-      white-space: nowrap;
-    }
-    .budget-status.over   { background: rgba(16,185,129,0.1);  color: #059669; }
-    .budget-status.under  { background: rgba(245,158,11,0.1);  color: #d97706; }
-    .budget-status.equal  { background: rgba(100,116,139,0.1); color: var(--text-secondary); }
+/* ─── BUDGET BAR ─────────────────────────────────────────────────────────── */
+.budget{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.budget-lbl{font-size:10px;color:var(--t3);white-space:nowrap;}
+.track-wrap{flex:1;display:flex;flex-direction:column;gap:3px;}
+.track{height:5px;border-radius:99px;background:var(--border);overflow:hidden;}
+.fill{height:100%;border-radius:99px;min-width:3px;transition:width .5s ease;}
+.fill.over {background:var(--up);}
+.fill.under{background:var(--warn);}
+.track-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);font-family:var(--mono);}
+.budget-tag{
+  font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;white-space:nowrap;
+}
+.budget-tag.over {background:var(--up-bg);color:var(--up);}
+.budget-tag.under{background:var(--warn-bg);color:var(--warn);}
 
-    /* ── SPARKLINE ── */
-    .sparkline-section { position: relative; }
-    .sparkline-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 9px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      font-family: 'DM Mono', monospace;
-    }
-    .sparkline-wrap { position: relative; width: 100%; }
-    #sparkline-svg { width: 100%; display: block; overflow: visible; }
+/* ─── SPARKLINE ──────────────────────────────────────────────────────────── */
+.spark-wrap{position:relative;}
+#spark{width:100%;display:block;overflow:visible;}
+.legend{display:flex;gap:12px;justify-content:flex-end;margin-top:5px;}
+.leg{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
 
-    /* ── LEGEND ── */
-    .legend {
-      display: flex;
-      gap: 14px;
-      justify-content: flex-end;
-      margin-top: 6px;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .legend-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
-    .legend-line { width: 14px; height: 2px; border-radius: 2px; }
+/* ─── TOOLTIP ────────────────────────────────────────────────────────────── */
+#tip{
+  position:fixed;background:var(--t1);color:#fff;
+  font-size:10px;font-family:var(--mono);
+  padding:4px 8px;border-radius:5px;
+  pointer-events:none;white-space:nowrap;
+  opacity:0;transition:opacity .12s;z-index:999;
+}
+</style>
+</head>
+<body>
 
-    /* ── EMPTY FIELD HINTS ── */
-    .empty-hint {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-style: italic;
-    }
+<!-- Placeholder -->
+<div id="ph">
+  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="40" height="40" rx="9" stroke="#cbd5e1" stroke-width="2"/>
+    <path d="M9 30 L15 21 L21 25 L29 14 L35 18" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="35" cy="18" r="2.5" fill="#cbd5e1"/>
+    <line x1="9" y1="34" x2="35" y2="34" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <strong>KPI Card</strong>
+  <div>Drop fields on the Marks card tiles:<br>
+    <b style="color:#64748b">KPI Value</b> · <b style="color:#64748b">Target/Budget</b> ·
+    <b style="color:#64748b">Comp 1 Delta</b> · <b style="color:#64748b">Comp 2 Delta</b>
+  </div>
+  <div style="margin-top:4px;font-size:10px;">
+    Use <b style="color:#64748b">Detail</b> tile for sparkline (time series rows)<br>
+    Use <b style="color:#64748b">Tooltip</b> for period label &amp; comparison labels
+  </div>
+</div>
 
-    /* ── TOOLTIP ── */
-    #spark-tooltip {
-      position: fixed;
-      background: var(--text-primary);
-      color: #fff;
-      font-size: 11px;
-      padding: 5px 9px;
-      border-radius: 6px;
-      pointer-events: none;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 100;
-      font-family: 'DM Mono', monospace;
-    }
-  </style>
+<!-- KPI Card -->
+<div id="card">
+  <div class="hd">
+    <div class="hd-left">
+      <div class="kpi-title" id="kpi-title">KPI Metric</div>
+      <div class="kpi-period" id="kpi-period"></div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-val" id="hero-val">—</div>
+    <div class="dot neu" id="status-dot"></div>
+  </div>
+
+  <div class="comps" id="comps">
+    <div class="comp-row" id="c1-row" style="display:none">
+      <span class="comp-lbl" id="c1-lbl"></span>
+      <div class="badges">
+        <span class="badge" id="c1-pct"></span>
+        <span class="badge" id="c1-abs"></span>
+      </div>
+    </div>
+    <div class="comp-row" id="c2-row" style="display:none">
+      <span class="comp-lbl" id="c2-lbl"></span>
+      <div class="badges">
+        <span class="badge" id="c2-pct"></span>
+        <span class="badge" id="c2-abs"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="budget" id="budget" style="display:none">
+    <span class="budget-lbl">vs. Budget</span>
+    <div class="track-wrap">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="track-meta">
+        <span id="b-pct"></span>
+        <span id="b-target"></span>
+      </div>
+    </div>
+    <span class="budget-tag" id="b-tag"></span>
+  </div>
+
+  <div class="spark-wrap" id="spark-section" style="display:none">
+    <svg id="spark" height="60"></svg>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#059669"></div>On/Over Target</div>
+      <div class="leg"><div class="leg-dot" style="background:#0284c7"></div>No Target Set</div>
+      <div class="leg"><div class="leg-dot" style="background:#d97706"></div>Under Target</div>
+    </div>
+  </div>
+</div>
+
+<div id="tip"></div>
 
 <script>
 'use strict';
+(function(){
 
-(function () {
+  /* ── helpers ─────────────────────────────────────────────────────── */
+  const $  = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
 
-  // ─── ENCODING IDs (must match .trex) ───────────────────────────────────────
-  const ENC = {
-    VALUE:       'value',
-    LABEL:       'label',
-    PERIOD:      'period',
-    TREND:       'trend',
-    TARGET:      'target',
-    COMP1_VALUE: 'comp1_value',
-    COMP1_LABEL: 'comp1_label',
-    COMP2_VALUE: 'comp2_value',
-    COMP2_LABEL: 'comp2_label',
-  };
+  function svgEl(tag, attrs){
+    const el = document.createElementNS(NS, tag);
+    Object.entries(attrs||{}).forEach(([k,v])=>el.setAttribute(k,v));
+    return el;
+  }
 
-  let worksheet = null;
+  function fmtNum(n){
+    if(n===null||n===undefined||isNaN(n)) return '—';
+    const abs=Math.abs(n), sign=n<0?'-':'';
+    if(abs>=1e9)  return sign+'$'+(abs/1e9).toFixed(2)+'B';
+    if(abs>=1e6)  return sign+'$'+(abs/1e6).toFixed(2)+'M';
+    if(abs>=1e3)  return sign+'$'+abs.toLocaleString('en-US',{maximumFractionDigits:0});
+    return sign+'$'+abs.toFixed(2);
+  }
 
-  // ─── INIT ───────────────────────────────────────────────────────────────────
-  window.onload = function () {
-    tableau.extensions.initializeAsync().then(() => {
-      worksheet = tableau.extensions.worksheetContent.worksheet;
+  function nativeNum(dv){
+    if(!dv) return null;
+    const n = parseFloat(dv.nativeValue !== undefined ? dv.nativeValue : dv.value);
+    return isNaN(n) ? null : n;
+  }
 
-      // Listen for data changes (field drag/drop, filter changes, etc.)
-      worksheet.addEventListener(
-        tableau.TableauEventType.SummaryDataChanged,
-        handleDataChange
-      );
+  function fmtVal(dv){
+    if(!dv) return null;
+    const f = dv.formattedValue;
+    if(f && f!=='%null%' && f!=='Null') return f;
+    const n = nativeNum(dv);
+    return n!==null ? fmtNum(n) : null;
+  }
 
-      // Initial render
-      handleDataChange();
-    }, (err) => {
-      console.error('KPI Card init error:', err);
-      showPlaceholder('Initialization failed: ' + err.toString());
+  function strVal(dv){
+    if(!dv) return null;
+    const v = dv.formattedValue !== undefined ? dv.formattedValue : String(dv.value);
+    return (v==='%null%'||v==='Null') ? null : v;
+  }
+
+  /* ── tooltip ─────────────────────────────────────────────────────── */
+  const tip = $('tip');
+  function showTip(e,txt){ tip.textContent=txt; tip.style.opacity='1'; moveTip(e); }
+  function moveTip(e){ tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY-28)+'px'; }
+  function hideTip(){ tip.style.opacity='0'; }
+
+  /* ── show / hide card ─────────────────────────────────────────────── */
+  function showCard(){ $('ph').style.display='none'; $('card').style.display=''; }
+  function showPh()  { $('ph').style.display=''; $('card').style.display='none'; }
+
+  /* ── Tableau init ────────────────────────────────────────────────── */
+  let ws = null;
+
+  window.onload = function(){
+    tableau.extensions.initializeAsync().then(()=>{
+      ws = tableau.extensions.worksheetContent.worksheet;
+      ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, refresh);
+      refresh();
+    }, err => {
+      console.error('KPI Card init:', err);
+      showPh();
     });
   };
 
-  // ─── MAIN DATA + ENCODING HANDLER ──────────────────────────────────────────
-  async function handleDataChange () {
-    try {
-      const encodingMap  = await buildEncodingMap();
-      const summaryData  = await fetchSummaryData();
-
-      renderCard(encodingMap, summaryData);
-    } catch (err) {
-      console.error('KPI Card render error:', err);
-    }
+  /* ── main refresh ─────────────────────────────────────────────────── */
+  async function refresh(){
+    try{
+      const [encMap, data] = await Promise.all([getEncodings(), getData()]);
+      render(encMap, data);
+    } catch(e){ console.error('KPI refresh:', e); }
   }
 
-  // ─── BUILD ENCODING MAP ─────────────────────────────────────────────────────
-  // Returns { encodingId: [fieldName, ...], ... }  for encodings that have fields
-  async function buildEncodingMap () {
-    const visualSpec = await worksheet.getVisualSpecificationAsync();
-    const marksSpec  = visualSpec.marksSpecifications[visualSpec.activeMarksSpecificationIndex];
-
-    const map = {};
-    for (const encoding of marksSpec.encodings) {
-      if (!map[encoding.id]) map[encoding.id] = [];
-      if (encoding.field && encoding.field.name) {
-        map[encoding.id].push(encoding.field.name);
-      }
+  /* ── build encoding map ───────────────────────────────────────────── */
+  async function getEncodings(){
+    const spec   = await ws.getVisualSpecificationAsync();
+    const marks  = spec.marksSpecifications[spec.activeMarksSpecificationIndex];
+    const map    = {};
+    for(const enc of marks.encodings){
+      if(!map[enc.id]) map[enc.id]=[];
+      if(enc.field?.name) map[enc.id].push(enc.field.name);
     }
     return map;
   }
 
-  // ─── FETCH SUMMARY DATA ──────────────────────────────────────────────────────
-  async function fetchSummaryData () {
-    const reader = await worksheet.getSummaryDataReaderAsync(undefined, {
-      ignoreSelection: true,
-    });
-
-    const pages = [];
-    for (let p = 0; p < reader.pageCount; p++) {
-      pages.push(await reader.getPageAsync(p));
-    }
+  /* ── fetch all summary rows ───────────────────────────────────────── */
+  async function getData(){
+    const reader = await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
+    const pages  = [];
+    for(let p=0;p<reader.pageCount;p++) pages.push(await reader.getPageAsync(p));
     await reader.releaseAsync();
-
-    if (pages.length === 0) return { columns: [], rows: [] };
-
-    const columns = pages[0].columns.map(c => ({ name: c.fieldName, index: c.index }));
-    const rows    = pages.flatMap(page => page.data);
-    return { columns, rows };
+    if(!pages.length) return {cols:[], rows:[]};
+    const cols = pages[0].columns.map(c=>({name:c.fieldName,idx:c.index}));
+    const rows = pages.flatMap(pg=>pg.data);
+    return {cols, rows};
   }
 
-  // ─── RENDER CARD ─────────────────────────────────────────────────────────────
-  function renderCard (encodingMap, summaryData) {
-    const { columns, rows } = summaryData;
+  /* ── render ───────────────────────────────────────────────────────── */
+  function render(enc, {cols, rows}){
+    if(!rows.length){ showPh(); return; }
 
-    // Helper: get column index by field name
-    function colIdx (fieldName) {
-      const col = columns.find(c => c.name === fieldName);
-      return col ? col.index : -1;
+    function cidx(name){ const c=cols.find(c=>c.name===name); return c?c.idx:-1; }
+    function cell(row,name){ const i=cidx(name); return i>=0?row[i]:null; }
+    function firstNum(fieldArr){
+      if(!fieldArr?.length) return {v:null,fmt:null,field:null};
+      const dv = cell(rows[0], fieldArr[0]);
+      return {v:nativeNum(dv), fmt:fmtVal(dv), field:fieldArr[0]};
     }
 
-    // Helper: get numeric value from a DataValue
-    function numVal (dv) {
-      if (!dv) return null;
-      const n = parseFloat(dv.nativeValue !== undefined ? dv.nativeValue : dv.value);
-      return isNaN(n) ? null : n;
+    /* ── main value ── */
+    const valF  = enc['value'] || [];
+    const {v:mainV, fmt:mainFmt, field:mainField} = firstNum(valF);
+
+    /* ── target ── */
+    const {v:targV, fmt:targFmt} = firstNum(enc['target']||[]);
+
+    /* ── comparisons ── */
+    const {v:c1v, fmt:c1fmt, field:c1field} = firstNum(enc['comp1']||[]);
+    const {v:c2v, fmt:c2fmt, field:c2field} = firstNum(enc['comp2']||[]);
+
+    /* ── sparkline trend – use the Detail tile (id:"detail") or all rows of value field ── */
+    // Collect all rows of the KPI value field for sparkline
+    let trendVals = [];
+    if(valF.length){
+      const fi = cidx(valF[0]);
+      if(fi>=0) trendVals = rows.map(r=>nativeNum(r[fi])).filter(v=>v!==null);
     }
 
-    // Helper: get string value from a DataValue
-    function strVal (dv) {
-      if (!dv) return null;
-      const v = dv.formattedValue !== undefined ? dv.formattedValue : String(dv.value);
-      return v === '%null%' || v === 'Null' ? null : v;
+    /* ── period & comp labels from Tooltip tile ── */
+    // The Detail tile field names carry the period/label info
+    // We use the field names themselves as labels for comparisons
+    let periodLabel = '';
+    // Try to grab a date/string field from Detail encoding
+    const detailFields = enc['detail'] || enc['tooltip'] || [];
+    if(detailFields.length && rows.length){
+      const dv = cell(rows[0], detailFields[0]);
+      if(dv) periodLabel = strVal(dv) || '';
     }
 
-    // ── Gather values ──
+    /* ── guard: need at least the main value ── */
+    if(mainV === null && trendVals.length === 0){ showPh(); return; }
+    showCard();
 
-    // Main KPI value – take first row's value
-    const valueFields = encodingMap[ENC.VALUE] || [];
-    let mainValue     = null;
-    let mainFormatted = null;
-    if (valueFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(valueFields[0]);
-      if (idx >= 0) {
-        mainValue     = numVal(rows[0][idx]);
-        mainFormatted = rows[0][idx].formattedValue || formatNumber(mainValue);
-      }
-    }
+    /* ── title: use the field name, prettified ── */
+    $('kpi-title').textContent = mainField ? prettify(mainField) : 'KPI Metric';
+    $('kpi-period').textContent = periodLabel;
 
-    // Label
-    const labelFields = encodingMap[ENC.LABEL] || [];
-    let cardTitle = null;
-    if (labelFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(labelFields[0]);
-      if (idx >= 0) cardTitle = strVal(rows[0][idx]);
-    }
+    /* ── hero value ── */
+    $('hero-val').textContent = mainFmt || fmtNum(mainV);
 
-    // Period
-    const periodFields = encodingMap[ENC.PERIOD] || [];
-    let cardPeriod = null;
-    if (periodFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(periodFields[0]);
-      if (idx >= 0) cardPeriod = strVal(rows[0][idx]);
-    }
-
-    // Target / Budget
-    const targetFields = encodingMap[ENC.TARGET] || [];
-    let targetValue    = null;
-    let targetFormatted = null;
-    if (targetFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(targetFields[0]);
-      if (idx >= 0) {
-        targetValue     = numVal(rows[0][idx]);
-        targetFormatted = rows[0][idx].formattedValue || formatNumber(targetValue);
-      }
-    }
-
-    // Comparison 1
-    const c1vFields = encodingMap[ENC.COMP1_VALUE] || [];
-    const c1lFields = encodingMap[ENC.COMP1_LABEL] || [];
-    let comp1Value  = null;
-    let comp1Label  = null;
-    if (c1vFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(c1vFields[0]);
-      if (idx >= 0) comp1Value = numVal(rows[0][idx]);
-    }
-    if (c1lFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(c1lFields[0]);
-      if (idx >= 0) comp1Label = strVal(rows[0][idx]);
-    }
-
-    // Comparison 2
-    const c2vFields = encodingMap[ENC.COMP2_VALUE] || [];
-    const c2lFields = encodingMap[ENC.COMP2_LABEL] || [];
-    let comp2Value  = null;
-    let comp2Label  = null;
-    if (c2vFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(c2vFields[0]);
-      if (idx >= 0) comp2Value = numVal(rows[0][idx]);
-    }
-    if (c2lFields.length > 0 && rows.length > 0) {
-      const idx = colIdx(c2lFields[0]);
-      if (idx >= 0) comp2Label = strVal(rows[0][idx]);
-    }
-
-    // Trend sparkline values – collect all rows for the trend field
-    const trendFields = encodingMap[ENC.TREND] || [];
-    let trendValues   = [];
-    if (trendFields.length > 0) {
-      const idx = colIdx(trendFields[0]);
-      if (idx >= 0) {
-        trendValues = rows.map(r => numVal(r[idx])).filter(v => v !== null);
-      }
-    }
-
-    // ── If nothing is mapped yet, show placeholder ──
-    const hasAny = mainValue !== null || cardTitle || trendValues.length > 0;
-    if (!hasAny) {
-      showPlaceholder();
-      return;
-    }
-
-    // ── Populate DOM ──
-    hidePlaceholder();
-
-    // Title & period
-    el('card-title').textContent = cardTitle || (valueFields[0] || 'KPI Metric');
-    el('card-period').textContent = cardPeriod || '';
-
-    // Main value
-    el('main-value').textContent = mainFormatted !== null ? mainFormatted : (mainValue !== null ? formatNumber(mainValue) : '—');
-
-    // Status dot
-    const dot = el('status-dot');
-    if (mainValue !== null && targetValue !== null) {
-      dot.className = 'status-dot ' + (mainValue >= targetValue ? 'up' : 'down');
+    /* ── status dot ── */
+    const dot = $('status-dot');
+    if(mainV!==null && targV!==null){
+      dot.className = 'dot ' + (mainV>=targV?'':'dn');
     } else {
-      dot.className = 'status-dot up';
+      dot.className = 'dot neu';
     }
 
-    // Comparisons
-    renderComp(
-      'comp1-row', 'comp1-label', 'comp1-pct-badge', 'comp1-abs-badge',
-      comp1Value, comp1Label, mainValue, c1vFields[0]
-    );
-    renderComp(
-      'comp2-row', 'comp2-label', 'comp2-pct-badge', 'comp2-abs-badge',
-      comp2Value, comp2Label, mainValue, c2vFields[0]
-    );
+    /* ── comparison rows ── */
+    renderComp('c1-row','c1-lbl','c1-pct','c1-abs', c1v, c1fmt, c1field, mainV);
+    renderComp('c2-row','c2-lbl','c2-pct','c2-abs', c2v, c2fmt, c2field, mainV);
 
-    // Hide comparisons section if neither is set
-    const showComps = comp1Value !== null || comp2Value !== null;
-    el('comparisons-section').style.display = showComps ? '' : 'none';
+    const anyComp = c1v!==null || c2v!==null;
+    $('comps').style.display = anyComp ? '' : 'none';
 
-    // Budget / target
-    renderBudget(mainValue, targetValue, targetFormatted);
+    /* ── budget bar ── */
+    renderBudget(mainV, targV, targFmt);
 
-    // Sparkline
-    renderSparkline(trendValues, targetValue);
+    /* ── sparkline ── */
+    renderSpark(trendVals, targV);
   }
 
-  // ─── RENDER COMPARISON ROW ────────────────────────────────────────────────
-  function renderComp (rowId, labelId, pctId, absId, compValue, labelText, mainValue, fallbackField) {
-    const row = el(rowId);
-    if (compValue === null) {
-      row.style.display = 'none';
-      return;
-    }
-    row.style.display = '';
+  /* ── comparison row ───────────────────────────────────────────────── */
+  function renderComp(rowId,lblId,pctId,absId, delta, deltaFmt, fieldName, mainV){
+    const row = $(rowId);
+    if(delta===null){ row.style.display='none'; return; }
+    row.style.display='';
 
-    // Label
-    el(labelId).textContent = labelText || (fallbackField ? 'vs. ' + fallbackField : 'Comparison');
+    $(lblId).textContent = fieldName ? prettify(fieldName) : 'Comparison';
 
-    // Percentage change vs main value
-    const pctEl = el(pctId);
-    const absEl = el(absId);
+    const isUp = delta >= 0;
+    const cls  = isUp ? 'badge up' : 'badge dn';
+    const arr  = isUp ? '▲' : '▼';
 
-    if (mainValue !== null && mainValue !== 0) {
-      const prevValue = mainValue - compValue;  // compValue is the delta, OR it could be the previous value
-      // Detect whether compValue looks like a delta (small relative to mainValue) or an absolute
-      // We treat it as a delta/absolute difference:
-      const pct  = mainValue !== 0 ? (compValue / Math.abs(mainValue - compValue)) * 100 : 0;
-      const isUp = compValue >= 0;
-      const cls  = isUp ? 'badge up' : 'badge down';
-      const arrow = isUp ? '↑' : '↓';
-      const absPct = Math.abs(((compValue) / (mainValue - compValue)) * 100);
+    // % change: delta / (mainV - delta) × 100
+    const prev = mainV !== null ? mainV - delta : null;
+    const pct  = (prev && prev!==0) ? Math.abs(delta/prev*100) : null;
 
-      pctEl.className = cls;
-      pctEl.textContent = arrow + ' ' + (isNaN(absPct) ? '—' : absPct.toFixed(1)) + '%';
+    $(pctId).className = cls;
+    $(pctId).textContent = arr + ' ' + (pct!==null ? pct.toFixed(1)+'%' : '—');
 
-      absEl.className = cls;
-      absEl.textContent = (isUp ? '+' : '') + formatNumber(compValue);
-    } else {
-      // Just show the raw value
-      const isUp = compValue >= 0;
-      pctEl.className = 'badge ' + (isUp ? 'up' : 'down');
-      pctEl.textContent = (isUp ? '+' : '') + formatNumber(compValue);
-      absEl.className = 'badge neutral';
-      absEl.textContent = '';
-    }
+    $(absId).className = cls;
+    $(absId).textContent = (isUp?'+':'') + (deltaFmt || fmtNum(delta));
   }
 
-  // ─── RENDER BUDGET BAR ────────────────────────────────────────────────────
-  function renderBudget (mainValue, targetValue, targetFormatted) {
-    const section = el('budget-section');
-    if (mainValue === null || targetValue === null || targetValue === 0) {
-      section.style.display = 'none';
-      return;
-    }
-    section.style.display = '';
+  /* ── budget bar ───────────────────────────────────────────────────── */
+  function renderBudget(mainV, targV, targFmt){
+    const sec = $('budget');
+    if(mainV===null || targV===null || targV===0){ sec.style.display='none'; return; }
+    sec.style.display='';
 
-    const pct     = (mainValue / targetValue) * 100;
-    const clipped = Math.min(Math.max(pct, 0), 100);
-    const isOver  = mainValue >= targetValue;
-    const diff    = Math.abs(mainValue - targetValue);
-    const diffPct = Math.abs(pct - 100).toFixed(1);
+    const pct     = mainV/targV*100;
+    const clipped = Math.min(Math.max(pct,0),100);
+    const isOver  = mainV >= targV;
+    const diffPct = Math.abs(pct-100).toFixed(1);
 
-    const fill    = el('budget-fill');
-    fill.style.width = clipped + '%';
-    fill.className = 'budget-fill ' + (isOver ? 'over' : 'under');
+    const fill = $('fill');
+    fill.style.width  = clipped+'%';
+    fill.className    = 'fill '+(isOver?'over':'under');
 
-    el('budget-pct').textContent = Math.round(pct) + '%';
-    el('budget-target-val').textContent = targetFormatted || formatNumber(targetValue);
+    $('b-pct').textContent    = Math.round(pct)+'%';
+    $('b-target').textContent = targFmt || fmtNum(targV);
 
-    const statusEl = el('budget-status');
-    if (isOver) {
-      statusEl.className = 'budget-status over';
-      statusEl.textContent = diffPct + '% ABOVE BUDGET';
-    } else {
-      statusEl.className = 'budget-status under';
-      statusEl.textContent = diffPct + '% BELOW BUDGET';
-    }
+    const tag = $('b-tag');
+    tag.className   = 'budget-tag '+(isOver?'over':'under');
+    tag.textContent = diffPct+'% '+(isOver?'ABOVE':'BELOW')+' BUDGET';
   }
 
-  // ─── RENDER SPARKLINE ─────────────────────────────────────────────────────
-  function renderSparkline (values, targetValue) {
-    const section = el('sparkline-section');
-    if (values.length < 2) {
-      section.style.display = 'none';
-      return;
-    }
-    section.style.display = '';
+  /* ── sparkline ────────────────────────────────────────────────────── */
+  function renderSpark(values, targV){
+    const sec = $('spark-section');
+    if(values.length < 2){ sec.style.display='none'; return; }
+    sec.style.display='';
 
-    const svg    = el('sparkline-svg');
-    const W      = svg.clientWidth || 460;
-    const H      = 64;
-    const PAD    = { top: 8, right: 6, bottom: 8, left: 6 };
-    const plotW  = W - PAD.left - PAD.right;
-    const plotH  = H - PAD.top - PAD.bottom;
+    const svg  = $('spark');
+    const W    = svg.clientWidth || 460;
+    const H    = 60;
+    const PAD  = {t:8,r:6,b:10,l:6};
+    const pw   = W-PAD.l-PAD.r;
+    const ph   = H-PAD.t-PAD.b;
 
     const minV = Math.min(...values);
     const maxV = Math.max(...values);
-    const range = maxV - minV || 1;
+    const rng  = maxV-minV||1;
 
-    const scaleX = i  => PAD.left + (i / (values.length - 1)) * plotW;
-    const scaleY = v  => PAD.top + plotH - ((v - minV) / range) * plotH;
+    const sx = i => PAD.l + (i/(values.length-1))*pw;
+    const sy = v => PAD.t + ph - ((v-minV)/rng)*ph;
+    const pts = values.map((v,i)=>[sx(i),sy(v)]);
 
-    // Build path data
-    const pts = values.map((v, i) => [scaleX(i), scaleY(v)]);
-    const linePath = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
-
-    // Area fill path (close to bottom)
-    const areaPath = linePath + ` L${pts[pts.length-1][0]},${H - PAD.bottom} L${pts[0][0]},${H - PAD.bottom} Z`;
-
-    // Color each segment based on vs target
-    function segColor (v) {
-      if (targetValue === null) return '#0ea5e9';
-      if (v >= targetValue) return '#10b981';   // over/on target
-      return '#f59e0b';                           // under target
+    // colour per point
+    function ptColor(v){
+      if(targV===null) return '#0284c7';
+      return v>=targV ? '#059669' : '#d97706';
     }
 
-    // Build SVG
-    const ns = 'http://www.w3.org/2000/svg';
+    // clear
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
 
-    // Clear previous
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // defs – gradient
+    const defs = svgEl('defs');
+    const grad = svgEl('linearGradient',{id:'spGrad',x1:'0',y1:'0',x2:'0',y2:'1'});
+    const s1   = svgEl('stop',{'offset':'0%','stop-color':'#0284c7','stop-opacity':'0.12'});
+    const s2   = svgEl('stop',{'offset':'100%','stop-color':'#0284c7','stop-opacity':'0'});
+    grad.append(s1,s2); defs.append(grad); svg.append(defs);
 
-    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    // area
+    const areaD = pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(' ')
+      + ` L${pts[pts.length-1][0]},${H-PAD.b} L${pts[0][0]},${H-PAD.b} Z`;
+    svg.append(svgEl('path',{d:areaD,fill:'url(#spGrad)'}));
 
-    // Gradient defs
-    const defs = document.createElementNS(ns, 'defs');
-    const grad = document.createElementNS(ns, 'linearGradient');
-    grad.setAttribute('id', 'sparkGrad');
-    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
-    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
-    const s1 = document.createElementNS(ns, 'stop');
-    s1.setAttribute('offset', '0%');
-    s1.setAttribute('stop-color', '#0ea5e9');
-    s1.setAttribute('stop-opacity', '0.15');
-    const s2 = document.createElementNS(ns, 'stop');
-    s2.setAttribute('offset', '100%');
-    s2.setAttribute('stop-color', '#0ea5e9');
-    s2.setAttribute('stop-opacity', '0');
-    grad.appendChild(s1); grad.appendChild(s2);
-    defs.appendChild(grad);
-    svg.appendChild(defs);
-
-    // Area fill
-    const areaEl = document.createElementNS(ns, 'path');
-    areaEl.setAttribute('d', areaPath);
-    areaEl.setAttribute('fill', 'url(#sparkGrad)');
-    svg.appendChild(areaEl);
-
-    // Target line
-    if (targetValue !== null) {
-      const ty = scaleY(Math.min(Math.max(targetValue, minV), maxV));
-      const tLine = document.createElementNS(ns, 'line');
-      tLine.setAttribute('x1', PAD.left);
-      tLine.setAttribute('y1', ty);
-      tLine.setAttribute('x2', W - PAD.right);
-      tLine.setAttribute('y2', ty);
-      tLine.setAttribute('stroke', '#94a3b8');
-      tLine.setAttribute('stroke-width', '1');
-      tLine.setAttribute('stroke-dasharray', '4,3');
-      svg.appendChild(tLine);
+    // target line
+    if(targV!==null){
+      const ty = sy(Math.min(Math.max(targV,minV),maxV));
+      svg.append(svgEl('line',{
+        x1:PAD.l,y1:ty,x2:W-PAD.r,y2:ty,
+        stroke:'#94a3b8','stroke-width':'1','stroke-dasharray':'4,3'
+      }));
     }
 
-    // Main line (coloured segments)
-    for (let i = 1; i < pts.length; i++) {
-      const seg = document.createElementNS(ns, 'line');
-      seg.setAttribute('x1', pts[i-1][0]);
-      seg.setAttribute('y1', pts[i-1][1]);
-      seg.setAttribute('x2', pts[i][0]);
-      seg.setAttribute('y2', pts[i][1]);
-      seg.setAttribute('stroke', segColor(values[i]));
-      seg.setAttribute('stroke-width', '2');
-      seg.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(seg);
+    // segments
+    for(let i=1;i<pts.length;i++){
+      svg.append(svgEl('line',{
+        x1:pts[i-1][0],y1:pts[i-1][1],x2:pts[i][0],y2:pts[i][1],
+        stroke:ptColor(values[i]),'stroke-width':'2','stroke-linecap':'round'
+      }));
     }
 
-    // Dots
-    pts.forEach(([x, y], i) => {
-      const c = document.createElementNS(ns, 'circle');
-      c.setAttribute('cx', x);
-      c.setAttribute('cy', y);
-      c.setAttribute('r', '3');
-      c.setAttribute('fill', segColor(values[i]));
-      c.setAttribute('stroke', '#fff');
-      c.setAttribute('stroke-width', '1.5');
-      c.style.cursor = 'pointer';
-
-      // Tooltip
-      c.addEventListener('mouseenter', (e) => showSparkTooltip(e, formatNumber(values[i])));
-      c.addEventListener('mousemove',  (e) => moveSparkTooltip(e));
-      c.addEventListener('mouseleave', hideSparkTooltip);
-
-      svg.appendChild(c);
+    // dots
+    pts.forEach(([x,y],i)=>{
+      const c = svgEl('circle',{cx:x,cy:y,r:'3.5',fill:ptColor(values[i]),stroke:'#fff','stroke-width':'1.5'});
+      c.style.cursor='pointer';
+      c.addEventListener('mouseenter', e=>showTip(e, fmtNum(values[i])));
+      c.addEventListener('mousemove',  moveTip);
+      c.addEventListener('mouseleave', hideTip);
+      svg.append(c);
     });
 
-    // FORECAST label at end
-    if (values.length > 0) {
-      const lastPt = pts[pts.length - 1];
-      const label  = document.createElementNS(ns, 'text');
-      label.setAttribute('x', lastPt[0] - 2);
-      label.setAttribute('y', lastPt[1] - 7);
-      label.setAttribute('text-anchor', 'end');
-      label.setAttribute('font-size', '8');
-      label.setAttribute('font-family', 'DM Mono, monospace');
-      label.setAttribute('fill', '#94a3b8');
-      label.setAttribute('letter-spacing', '0.05em');
-      label.textContent = 'LATEST';
-      svg.appendChild(label);
-    }
+    // "LATEST" label on last point
+    const lp = pts[pts.length-1];
+    const lbl = svgEl('text',{
+      x:lp[0]-4, y:lp[1]-8,
+      'text-anchor':'end','font-size':'7.5',
+      'font-family':'IBM Plex Mono,monospace',
+      fill:'#94a3b8','letter-spacing':'0.06em'
+    });
+    lbl.textContent='LATEST';
+    svg.append(lbl);
   }
 
-  // ─── SPARKLINE TOOLTIP ───────────────────────────────────────────────────
-  const tooltip = document.getElementById('spark-tooltip');
-  function showSparkTooltip (e, text) {
-    tooltip.textContent = text;
-    tooltip.style.opacity = '1';
-    moveSparkTooltip(e);
-  }
-  function moveSparkTooltip (e) {
-    tooltip.style.left = (e.clientX + 12) + 'px';
-    tooltip.style.top  = (e.clientY - 28) + 'px';
-  }
-  function hideSparkTooltip () {
-    tooltip.style.opacity = '0';
-  }
-
-  // ─── UTILITIES ─────────────────────────────────────────────────────────────
-  function el (id) { return document.getElementById(id); }
-
-  function showPlaceholder (msg) {
-    el('placeholder').style.display = '';
-    el('kpi-card').style.display    = 'none';
-    if (msg) {
-      const div = el('placeholder');
-      div.querySelector('div:last-child').textContent = msg;
-    }
-  }
-
-  function hidePlaceholder () {
-    el('placeholder').style.display = 'none';
-    el('kpi-card').style.display    = '';
-  }
-
-  function formatNumber (n) {
-    if (n === null || n === undefined || isNaN(n)) return '—';
-    const abs = Math.abs(n);
-    const sign = n < 0 ? '-' : '';
-    if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(2) + 'M';
-    if (abs >= 1_000)     return sign + '$' + abs.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    return sign + '$' + abs.toFixed(2);
+  /* ── prettify field name ──────────────────────────────────────────── */
+  function prettify(name){
+    return name
+      .replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
+      .replace(/[_\-]/g,' ')
+      .replace(/\b\w/g,c=>c.toUpperCase())
+      .trim();
   }
 
 })();
 </script>
-</head>
-<body>
-
-  <!-- Placeholder shown before data is loaded -->
-  <div id="placeholder">
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <rect x="4" y="4" width="40" height="40" rx="8" stroke="#94a3b8" stroke-width="2"/>
-      <path d="M12 30 L18 22 L24 26 L32 16 L36 20" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="36" cy="20" r="2" fill="#94a3b8"/>
-    </svg>
-    <div style="font-weight:600;color:#64748b;">KPI Card</div>
-    <div>Drag fields onto the encoding tiles<br>on the Marks card to get started.</div>
-  </div>
-
-  <!-- The actual KPI card -->
-  <div id="kpi-card">
-    <!-- Header -->
-    <div class="card-header">
-      <div>
-        <div class="card-title" id="card-title">KPI Metric</div>
-        <div class="card-period" id="card-period"></div>
-      </div>
-    </div>
-
-    <!-- Main value -->
-    <div class="main-value-row">
-      <div class="main-value" id="main-value">—</div>
-      <div class="status-dot" id="status-dot"></div>
-    </div>
-
-    <!-- Comparisons -->
-    <div class="comparisons" id="comparisons-section">
-      <div class="comp-row" id="comp1-row" style="display:none">
-        <span class="comp-label" id="comp1-label"></span>
-        <div class="comp-badges">
-          <span class="badge" id="comp1-pct-badge"></span>
-          <span class="badge" id="comp1-abs-badge"></span>
-        </div>
-      </div>
-      <div class="comp-row" id="comp2-row" style="display:none">
-        <span class="comp-label" id="comp2-label"></span>
-        <div class="comp-badges">
-          <span class="badge" id="comp2-pct-badge"></span>
-          <span class="badge" id="comp2-abs-badge"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Budget / Target -->
-    <div class="budget-section" id="budget-section" style="display:none">
-      <span class="budget-label" id="budget-vs-label">vs. Budget</span>
-      <div class="budget-track-wrap">
-        <div class="budget-track">
-          <div class="budget-fill" id="budget-fill"></div>
-        </div>
-        <div class="budget-meta">
-          <span class="pct" id="budget-pct"></span>
-          <span class="target-val" id="budget-target-val"></span>
-        </div>
-      </div>
-      <span class="budget-status" id="budget-status"></span>
-    </div>
-
-    <!-- Sparkline -->
-    <div class="sparkline-section" id="sparkline-section" style="display:none">
-      <div class="sparkline-wrap">
-        <svg id="sparkline-svg" height="64"></svg>
-      </div>
-      <div class="legend">
-        <div class="legend-item">
-          <div class="legend-dot" style="background:#10b981"></div>Target Hit
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:#0ea5e9"></div>Over Achieved
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:#f59e0b"></div>Under Achieved
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="spark-tooltip"></div>
-
-  <script src="./KPICard.js"></script>
 </body>
 </html>
