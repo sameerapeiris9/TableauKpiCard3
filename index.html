@@ -28,112 +28,79 @@ html,body{
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
-#app{width:calc(100% - 20px);max-width:400px;position:relative;}
+#app{width:calc(100% - 16px);max-width:420px;}
 
 /* ── CARD ── */
 #card{
   background:var(--card);
-  border-radius:16px;
+  border-radius:14px;
   border:0.5px solid var(--bdr);
-  padding:20px 20px 18px;
-  box-shadow:0 1px 2px rgba(0,0,0,0.04),0 6px 28px rgba(0,0,0,0.07);
-  animation:rise .32s cubic-bezier(.22,.68,0,1.15) both;
+  padding:14px 16px 12px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 20px rgba(0,0,0,0.07);
+  animation:rise .3s cubic-bezier(.22,.68,0,1.15) both;
 }
-@keyframes rise{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(5px) scale(.99)}to{opacity:1;transform:none}}
 
 /* ── HEADER ── */
-.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px;}
-.hdr-left{display:flex;align-items:center;gap:8px;min-width:0;}
+.hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;
+}
 .metric-name{
-  font-size:11px;font-weight:600;letter-spacing:.09em;
+  font-size:10px;font-weight:600;letter-spacing:.09em;
   text-transform:uppercase;color:var(--t2);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.edit-btn{
-  flex-shrink:0;cursor:pointer;background:none;border:none;padding:2px;
-  color:var(--t3);display:flex;align-items:center;
-  border-radius:4px;transition:color .15s;
-}
-.edit-btn:hover{color:var(--t2);}
-.hdr-right{display:flex;align-items:center;gap:7px;flex-shrink:0;}
 .status-pill{
-  font-size:9px;font-weight:600;letter-spacing:.06em;
-  text-transform:uppercase;padding:3px 9px;border-radius:99px;
-  white-space:nowrap;
+  font-size:8.5px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;padding:2px 8px;border-radius:99px;
+  white-space:nowrap;flex-shrink:0;
 }
 
-/* ── HERO ── */
-.hero-val{
-  font-size:40px;font-weight:600;color:var(--t1);
-  letter-spacing:-0.03em;line-height:1;margin-bottom:8px;
+/* ── HERO ROW — value + delta on same line ── */
+.hero-row{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:10px;margin-bottom:4px;
 }
-.hero-sub{display:flex;align-items:center;gap:7px;margin-bottom:18px;flex-wrap:wrap;}
+.hero-val{
+  font-size:30px;font-weight:600;color:var(--t1);
+  letter-spacing:-0.03em;line-height:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:0;
+}
 .delta-chip{
   display:inline-flex;align-items:center;gap:4px;
-  font-size:11px;font-weight:500;padding:3px 10px;
-  border-radius:7px;white-space:nowrap;flex-shrink:0;
+  font-size:10.5px;font-weight:500;padding:3px 9px;
+  border-radius:6px;white-space:nowrap;flex-shrink:0;margin-bottom:2px;
 }
-.delta-chip svg{flex-shrink:0;}
-.vs-text{font-size:10.5px;color:var(--t3);}
+.vs-text{font-size:9.5px;color:var(--t3);margin-bottom:10px;}
 
 /* ── DIVIDER ── */
-.div{height:0.5px;background:var(--bdr);margin-bottom:14px;}
+.div{height:0.5px;background:var(--bdr);margin-bottom:10px;}
 
-/* ── INSIGHT TILES — compact ── */
-.insight-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.ins-tile{border-radius:10px;padding:10px 12px;}
+/* ── INSIGHT TILES ── */
+.insight-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;}
+.ins-tile{border-radius:9px;padding:8px 10px;}
 .ins-top{
-  display:flex;align-items:center;gap:4px;
-  font-size:9px;font-weight:600;letter-spacing:.07em;
-  text-transform:uppercase;margin-bottom:6px;
+  display:flex;align-items:center;gap:3px;
+  font-size:8.5px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;margin-bottom:5px;
 }
-.ins-val{font-size:18px;font-weight:600;letter-spacing:-0.02em;line-height:1;margin-bottom:3px;}
-.ins-sub{font-size:9.5px;line-height:1.3;}
+.ins-val{
+  font-size:16px;font-weight:600;letter-spacing:-0.02em;
+  line-height:1;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ins-sub{font-size:9px;line-height:1.3;}
 
 /* ── ATTAINMENT ── */
-.attain{background:var(--surf);border-radius:10px;padding:11px 13px;}
-.att-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
-.att-lbl{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t2);}
-.att-pct{font-size:12px;font-weight:600;}
-.track{height:5px;background:var(--track);border-radius:99px;overflow:hidden;margin-bottom:5px;}
+.attain{background:var(--surf);border-radius:9px;padding:9px 11px;}
+.att-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.att-lbl{font-size:8.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t2);}
+.att-pct{font-size:11px;font-weight:600;}
+.track{height:4px;background:var(--track);border-radius:99px;overflow:hidden;margin-bottom:4px;}
 .track-fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.22,.68,0,1);}
-.att-foot{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);}
-
-/* ── SETTINGS POPOVER ── */
-#settings-overlay{
-  display:none;position:absolute;inset:0;z-index:10;
-  background:rgba(240,240,236,0.6);
-  border-radius:16px;
-  align-items:center;justify-content:center;
-}
-#settings-overlay.open{display:flex;}
-.settings-box{
-  background:var(--card);border:0.5px solid var(--bdr);
-  border-radius:14px;padding:18px 18px 16px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.12);
-  width:260px;
-}
-.settings-box h4{
-  font-size:11px;font-weight:600;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--t2);margin-bottom:12px;
-}
-.settings-box input{
-  width:100%;border:0.5px solid rgba(0,0,0,0.14);
-  border-radius:8px;padding:8px 10px;font-size:13px;
-  font-family:inherit;color:var(--t1);outline:none;
-  background:#fff;margin-bottom:12px;
-}
-.settings-box input:focus{border-color:rgba(0,0,0,0.3);}
-.settings-actions{display:flex;gap:7px;justify-content:flex-end;}
-.btn{
-  font-size:11px;font-weight:500;padding:6px 14px;
-  border-radius:7px;cursor:pointer;border:0.5px solid var(--bdr);
-  background:var(--surf);color:var(--t2);font-family:inherit;
-  transition:background .15s;
-}
-.btn:hover{background:#ececea;}
-.btn.primary{background:var(--t1);color:#fff;border-color:var(--t1);}
-.btn.primary:hover{background:#333;}
+.att-foot{display:flex;justify-content:space-between;font-size:8.5px;color:var(--t3);}
 
 /* ── COLOUR THEMES ── */
 .t-green.status-pill{background:var(--g-bg);color:var(--g-mid);}
@@ -175,39 +142,33 @@ html,body{
 </head>
 <body>
 <div id="app">
-
-  <!-- CARD -->
   <div id="card">
+
+    <!-- header: metric name left, status pill right -->
     <div class="hdr">
-      <div class="hdr-left">
-        <span class="metric-name" id="metric-name">KPI Metric</span>
-        <!-- pencil edit button -->
-        <button class="edit-btn" id="edit-btn" title="Set card title" aria-label="Edit card title">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M8.5 1.5 L10.5 3.5 L4 10 L1.5 10.5 L2 8 Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      <div class="hdr-right">
-        <div class="status-pill t-gray" id="status-pill">—</div>
-      </div>
+      <span class="metric-name" id="metric-name">KPI Metric</span>
+      <div class="status-pill t-gray" id="status-pill">—</div>
     </div>
 
-    <div class="hero-val" id="hero-val">—</div>
-    <div class="hero-sub">
+    <!-- hero row: big value left, delta chip right -->
+    <div class="hero-row">
+      <div class="hero-val" id="hero-val">—</div>
       <div class="delta-chip t-gray" id="delta-chip">
-        <svg id="delta-svg" width="10" height="10" viewBox="0 0 10 10" fill="none"></svg>
+        <svg id="delta-svg" width="9" height="9" viewBox="0 0 9 9" fill="none"></svg>
         <span id="delta-txt">—</span>
       </div>
-      <span class="vs-text" id="vs-txt"></span>
     </div>
+
+    <!-- vs label below hero -->
+    <div class="vs-text" id="vs-txt"></div>
 
     <div class="div"></div>
 
+    <!-- insight tiles -->
     <div class="insight-row">
       <div class="ins-tile t-gray" id="var-tile">
         <div class="ins-top">
-          <svg id="var-svg" width="11" height="11" viewBox="0 0 11 11" fill="none"></svg>
+          <svg id="var-svg" width="10" height="10" viewBox="0 0 10 10" fill="none"></svg>
           <span>Variance</span>
         </div>
         <div class="ins-val" id="var-val">—</div>
@@ -215,7 +176,7 @@ html,body{
       </div>
       <div class="ins-tile t-gray" id="bud-tile">
         <div class="ins-top">
-          <svg id="bud-svg" width="11" height="11" viewBox="0 0 11 11" fill="none"></svg>
+          <svg id="bud-svg" width="10" height="10" viewBox="0 0 10 10" fill="none"></svg>
           <span>vs Budget</span>
         </div>
         <div class="ins-val" id="bud-val">—</div>
@@ -223,28 +184,22 @@ html,body{
       </div>
     </div>
 
+    <!-- attainment bar -->
     <div class="attain" id="attain" style="display:none">
       <div class="att-hdr">
         <span class="att-lbl">Budget attainment</span>
         <span class="att-pct t-gray" id="att-pct">—</span>
       </div>
-      <div class="track"><div class="track-fill t-gray" id="track-fill" style="width:0%"></div></div>
-      <div class="att-foot"><span>0</span><span id="att-target">—</span></div>
-    </div>
-  </div>
-
-  <!-- SETTINGS POPOVER -->
-  <div id="settings-overlay">
-    <div class="settings-box">
-      <h4>Card title</h4>
-      <input type="text" id="title-input" placeholder="e.g. Total Revenue" maxlength="60"/>
-      <div class="settings-actions">
-        <button class="btn" id="cancel-btn">Cancel</button>
-        <button class="btn primary" id="save-btn">Save</button>
+      <div class="track">
+        <div class="track-fill t-gray" id="track-fill" style="width:0%"></div>
+      </div>
+      <div class="att-foot">
+        <span>0</span>
+        <span id="att-target">—</span>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>
 
 <script>
@@ -252,9 +207,7 @@ html,body{
 (function(){
 
   var $=function(id){return document.getElementById(id);};
-  var SETTING_KEY='kpi_card_title';
 
-  /* ── number formatting ── */
   function fmt(n){
     if(n===null||isNaN(n)) return '—';
     var abs=Math.abs(n),s=n<0?'-':'';
@@ -263,10 +216,8 @@ html,body{
     if(abs>=1000) return s+Math.round(abs).toLocaleString('en-US');
     return s+abs.toFixed(0);
   }
-  function pct(n){return (n>=0?'+':'')+n.toFixed(1)+'%';}
   function abp(n){return Math.abs(n).toFixed(1)+'%';}
 
-  /* ── colour helpers ── */
   function varClr(d){return d>=0?'t-green':'t-red';}
   function budClr(a,b){
     if(!b) return 't-gray';
@@ -274,23 +225,25 @@ html,body{
     return p>=100?'t-green':p>=90?'t-amber':'t-red';
   }
   var CLS=['t-green','t-red','t-amber','t-gray'];
-  function clr(id,c){var e=$(id);CLS.forEach(function(x){e.classList.remove(x);});e.classList.add(c);}
+  function clr(id,c){
+    var e=$(id);
+    CLS.forEach(function(x){e.classList.remove(x);});
+    e.classList.add(c);
+  }
 
-  /* ── arrow SVG ── */
   function arw(up,sz){
-    var h=sz-1,m=sz/2;
+    var h=sz-1,m=(sz/2).toFixed(1);
     var pts=up?'1,'+h+' '+m+',1 '+h+','+h:'1,1 '+m+','+h+' '+h+',1';
     return '<polyline points="'+pts+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
   }
 
-  /* ── clean field name ── */
   function pretty(n){
     return n.replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
             .replace(/[_-]/g,' ')
             .replace(/\b\w/g,function(c){return c.toUpperCase();}).trim();
   }
 
-  /* ── data reading (confirmed working pattern) ── */
+  /* ── confirmed working data pattern ── */
   async function getData(ws){
     var rows=[],reader=await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
     for(var i=0;i<reader.pageCount;i++){
@@ -313,7 +266,6 @@ html,body{
     return map;
   }
 
-  /* ── render ── */
   function render(data,enc,savedTitle){
     if(!enc.actual||!data.length) return;
     var row=data[0];
@@ -338,18 +290,11 @@ html,body{
     var aN=num('actual'), aF=fmtd('actual');
     var pN=num('previous');
     var bN=num('budget'),  bF=fmtd('budget');
-
     if(aN===null) return;
 
-    /* ── header: priority = savedTitle > header encoding > field name ── */
-    var headerText = savedTitle
-      || str('header')
-      || pretty(enc.actual.name);
-    $('metric-name').textContent=headerText;
-    /* pre-fill the input with current title for next edit */
-    $('title-input').value=savedTitle||str('header')||'';
+    /* header: saved setting → header encoding → prettified field name */
+    $('metric-name').textContent = savedTitle || str('header') || pretty(enc.actual.name);
 
-    /* deltas */
     var mD=(pN!==null)?aN-pN:null;
     var mP=(mD!==null&&pN!==0)?(mD/Math.abs(pN))*100:null;
     var aP=(bN!==null&&bN!==0)?(aN/bN)*100:null;
@@ -360,17 +305,18 @@ html,body{
     var oC=bN!==null?bC:vC;
     var sMap={'t-green':'On Track','t-amber':'Near Target','t-red':'Off Track','t-gray':'—'};
 
+    /* status pill */
     clr('status-pill',oC);
     $('status-pill').textContent=sMap[oC];
 
     /* hero */
     $('hero-val').textContent=aF||fmt(aN);
 
-    /* delta chip */
+    /* delta chip — inline with hero */
     clr('delta-chip',vC);
     if(mD!==null){
       var up=mD>=0;
-      $('delta-svg').innerHTML=arw(up,10);
+      $('delta-svg').innerHTML=arw(up,9);
       $('delta-txt').textContent=(up?'+':'')+fmt(mD)+'  '+(up?'+':'')+mP.toFixed(1)+'%';
       $('vs-txt').textContent='vs '+(enc.previous?pretty(enc.previous.name):'last month');
     } else {
@@ -381,24 +327,25 @@ html,body{
 
     /* variance tile */
     clr('var-tile',vC);
-    $('var-svg').innerHTML=mD!==null?arw(mD>=0,11):'';
+    $('var-svg').innerHTML=mD!==null?arw(mD>=0,10):'';
     $('var-val').textContent=mD!==null?(mD>=0?'+':'')+fmt(mD):'—';
     $('var-sub').textContent=mP!==null
       ?(mD>=0?'▲ ':'▼ ')+abp(mP)+' vs '+(enc.previous?pretty(enc.previous.name):'last month')
-      :'Add Previous Month field';
+      :'Add Previous Month';
 
     /* budget tile */
     clr('bud-tile',bC);
-    $('bud-svg').innerHTML=bN!==null?arw(aN>=bN,11):'';
+    $('bud-svg').innerHTML=bN!==null?arw(aN>=bN,10):'';
     $('bud-val').textContent=bF||fmt(bN)||'—';
     $('bud-sub').textContent=bP!==null
       ?(bP>=0?'▲ ':'▼ ')+abp(bP)+' '+(bP>=0?'above':'below')+' target'
-      :'Add Budget / Target field';
+      :'Add Budget / Target';
 
     /* attainment bar */
     if(aP!==null){
       $('attain').style.display='';
-      clr('att-pct',bC); clr('track-fill',bC);
+      clr('att-pct',bC);
+      clr('track-fill',bC);
       $('att-pct').textContent=Math.round(aP)+'%';
       $('track-fill').style.width=Math.min(Math.max(aP,0),100)+'%';
       $('att-target').textContent='Target '+(bF||fmt(bN));
@@ -407,51 +354,16 @@ html,body{
     }
   }
 
-  /* ── init ── */
   window.onload=tableau.extensions.initializeAsync().then(function(){
     var ws=tableau.extensions.worksheetContent.worksheet;
-
-    /* load saved title from extension settings */
-    var savedTitle=tableau.extensions.settings.get(SETTING_KEY)||'';
-
+    var savedTitle=tableau.extensions.settings.get('kpi_card_title')||'';
     var update=async function(){
       var data=await getData(ws);
       var enc =await getEnc(ws);
       render(data,enc,savedTitle);
     };
-
     ws.addEventListener(tableau.TableauEventType.SummaryDataChanged,update);
     update();
-
-    /* ── settings popover ── */
-    $('edit-btn').addEventListener('click',function(){
-      $('settings-overlay').classList.add('open');
-      $('title-input').focus();
-      $('title-input').select();
-    });
-
-    function closePopover(){$('settings-overlay').classList.remove('open');}
-
-    $('cancel-btn').addEventListener('click',closePopover);
-
-    $('save-btn').addEventListener('click',async function(){
-      savedTitle=$('title-input').value.trim();
-      tableau.extensions.settings.set(SETTING_KEY,savedTitle);
-      await tableau.extensions.settings.saveAsync();
-      closePopover();
-      update();
-    });
-
-    /* close on overlay background click */
-    $('settings-overlay').addEventListener('click',function(e){
-      if(e.target===this) closePopover();
-    });
-
-    /* save on Enter key */
-    $('title-input').addEventListener('keydown',function(e){
-      if(e.key==='Enter') $('save-btn').click();
-      if(e.key==='Escape') closePopover();
-    });
   });
 
 })();
