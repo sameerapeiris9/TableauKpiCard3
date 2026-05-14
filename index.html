@@ -206,10 +206,10 @@ html,body{
   function fmtMoney(n){
     if(n===null||isNaN(n)) return '—';
     var abs=Math.abs(n), s=n<0?'-':'';
-    if(abs>=1e9)  return s+'$'+(abs/1e9).toFixed(2)+'B';
-    if(abs>=1e6)  return s+'$'+(abs/1e6).toFixed(2)+'M';
-    if(abs>=1000) return s+'$'+Math.round(abs).toLocaleString('en-US');
-    return s+'$'+abs.toFixed(0);
+    if(abs>=1e9)  return s+(abs/1e9).toFixed(2)+'B';
+    if(abs>=1e6)  return s+(abs/1e6).toFixed(2)+'M';
+    if(abs>=1000) return s+Math.round(abs).toLocaleString('en-US');
+    return s+abs.toFixed(0);
   }
   function fmtPct(n){ return (n>=0?'+':'')+n.toFixed(1)+'%'; }
   function absPct(n){ return Math.abs(n).toFixed(1)+'%'; }
