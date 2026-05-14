@@ -1,465 +1,838 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://tableau.github.io/extensions-api/lib/tableau.extensions.1.latest.js"></script>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Inter,sans-serif;
-}
-
-body{
-    background:#f4f7fb;
-    padding:20px;
-}
-
-.card{
-    width:100%;
-    border-radius:32px;
-    background:white;
-    padding:34px;
-    box-shadow:
-        0 10px 40px rgba(15,23,42,0.06);
-}
-
-.top{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-}
-
-.left{
-    display:flex;
-    gap:20px;
-}
-
-.icon{
-    width:76px;
-    height:76px;
-    border-radius:24px;
-    background:linear-gradient(135deg,#eef2ff,#f3e8ff);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:34px;
-}
-
-.title{
-    font-size:20px;
-    font-weight:700;
-    color:#0f172a;
-}
-
-.subtitle{
-    margin-top:8px;
-    color:#64748b;
-    font-size:15px;
-}
-
-.hero{
-    margin-top:28px;
-    font-size:78px;
-    font-weight:800;
-    color:#020617;
-}
-
-.hero-label{
-    color:#64748b;
-    margin-top:6px;
-    letter-spacing:1px;
-    font-size:15px;
-}
-
-.stats{
-    display:flex;
-    gap:18px;
-}
-
-.stat-box{
-    width:240px;
-    border-radius:28px;
-    padding:28px;
-    background:#f8fafc;
-    border:1px solid #e2e8f0;
-}
-
-.stat-title{
-    color:#64748b;
-    font-size:14px;
-    font-weight:700;
-}
-
-.stat-value{
-    margin-top:26px;
-    font-size:42px;
-    font-weight:800;
-}
-
-.stat-sub{
-    margin-top:8px;
-    color:#64748b;
-}
-
-.green{
-    color:#16a34a;
-}
-
-.red{
-    color:#dc2626;
-}
-
-.insight{
-    margin-top:28px;
-    border-radius:28px;
-    padding:28px;
-    background:linear-gradient(90deg,#ecfdf5,#f0fdf4);
-    border:1px solid #bbf7d0;
-}
-
-.insight-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.insight-title{
-    font-size:18px;
-    font-weight:700;
-    color:#166534;
-}
-
-.progress{
-    margin-top:20px;
-    height:16px;
-    border-radius:999px;
-    background:#dcfce7;
-    overflow:hidden;
-}
-
-.bar{
-    height:100%;
-    border-radius:999px;
-    background:linear-gradient(90deg,#22c55e,#86efac);
-}
-
-.chart-card{
-    margin-top:28px;
-    background:white;
-    border-radius:28px;
-    border:1px solid #e2e8f0;
-    padding:24px;
-}
-
-.chart-title{
-    font-size:22px;
-    font-weight:700;
-    margin-bottom:20px;
-}
-
-canvas{
-    height:320px !important;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="card">
-
-    <div class="top">
-
-        <div>
-            <div class="left">
-
-                <div class="icon">
-                    📈
-                </div>
-
-                <div>
-                    <div class="title">
-                        KPI Performance
-                    </div>
-
-                    <div class="subtitle" id="monthText">
-                        Latest Available Month
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="hero" id="heroValue">
-                -
-            </div>
-
-            <div class="hero-label">
-                LATEST MONTH VALUE
-            </div>
-        </div>
-
-        <div class="stats">
-
-            <div class="stat-box">
-                <div class="stat-title">
-                    VS LAST MONTH
-                </div>
-
-                <div class="stat-value" id="momValue">
-                    -
-                </div>
-
-                <div class="stat-sub" id="momSub">
-                    -
-                </div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-title">
-                    VS LAST YEAR END
-                </div>
-
-                <div class="stat-value" id="yoyValue">
-                    -
-                </div>
-
-                <div class="stat-sub" id="yoySub">
-                    -
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="insight">
-
-        <div class="insight-top">
-
-            <div>
-                <div class="insight-title" id="insightTitle">
-                    Budget Achievement
-                </div>
-
-                <div style="margin-top:6px;color:#64748b">
-                    Actual vs Budget
-                </div>
-            </div>
-
-            <div style="font-size:38px;font-weight:800;color:#16a34a" id="achievePct">
-                0%
-            </div>
-
-        </div>
-
-        <div class="progress">
-            <div class="bar" id="progressBar"></div>
-        </div>
-
-    </div>
-
-    <div class="chart-card">
-
-        <div class="chart-title">
-            Trend Overview
-        </div>
-
-        <canvas id="trendChart"></canvas>
-
-    </div>
-
-</div>
-
-<script>
-
-let chart;
-
-tableau.extensions.initializeAsync().then(async()=>{
-
-    const worksheet =
-        tableau.extensions.dashboardContent.dashboard.worksheets[0];
-
-    const data =
-        await worksheet.getSummaryDataAsync();
-
-    const columns = data.columns;
-    const rows = data.data;
-
-    const actualIndex =
-        columns.findIndex(c =>
-            c.fieldName.toLowerCase().includes('actual'));
-
-    const budgetIndex =
-        columns.findIndex(c =>
-            c.fieldName.toLowerCase().includes('budget'));
-
-    const dateIndex =
-        columns.findIndex(c =>
-            c.fieldName.toLowerCase().includes('date'));
-
-    if(actualIndex===-1 || budgetIndex===-1 || dateIndex===-1){
-        alert("Actual/Budget/Date fields not found");
-        return;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KPI Card Viz Extension</title>
+
+  <!-- Tableau Extensions API -->
+  <script src="../../lib/tableau.extensions.1.latest.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --accent: #0ea5e9;
+      --up: #10b981;
+      --down: #f43f5e;
+      --warning: #f59e0b;
+      --track-bg: #e2e8f0;
+      --track-fill: #94a3b8;
+      --track-over: #10b981;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08);
     }
 
-    const parsed = rows.map(r=>({
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
 
-        actual:
-            Number(r[actualIndex].value),
+    /* ── PLACEHOLDER STATE ── */
+    #placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 40px;
+    }
+    #placeholder svg { opacity: 0.35; }
 
-        budget:
-            Number(r[budgetIndex].value),
+    /* ── CARD ── */
+    #kpi-card {
+      display: none;
+      width: calc(100% - 24px);
+      max-width: 520px;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 20px 22px 18px;
+      border: 1px solid var(--border);
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-        date:
-            new Date(r[dateIndex].value)
+    /* ── HEADER ROW ── */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .card-period {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
 
-    }))
-    .filter(d=>!isNaN(d.actual));
+    /* ── MAIN VALUE ── */
+    .main-value-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .main-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      font-family: 'DM Mono', monospace;
+      line-height: 1;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--up);
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+    }
+    .status-dot.down { background: var(--down); box-shadow: 0 0 0 3px rgba(244,63,94,0.2); }
 
-    parsed.sort((a,b)=>a.date-b.date);
+    /* ── COMPARISONS ── */
+    .comparisons {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .comp-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .comp-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+    .comp-badges {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    .badge.up   { background: rgba(16,185,129,0.1); color: #059669; }
+    .badge.down { background: rgba(244,63,94,0.1);  color: #e11d48; }
+    .badge.neutral { background: rgba(100,116,139,0.1); color: var(--text-secondary); }
 
-    const latest =
-        parsed[parsed.length-1];
+    /* ── BUDGET ROW ── */
+    .budget-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .budget-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .budget-track-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+    .budget-track {
+      height: 5px;
+      border-radius: 99px;
+      background: var(--track-bg);
+      overflow: hidden;
+    }
+    .budget-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--track-fill);
+      transition: width 0.6s ease;
+      min-width: 3px;
+    }
+    .budget-fill.over   { background: var(--track-over); }
+    .budget-fill.under  { background: var(--warning); }
+    .budget-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .budget-meta .pct { font-weight: 700; font-family: 'DM Mono', monospace; }
+    .budget-meta .target-val { font-family: 'DM Mono', monospace; }
+    .budget-status {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .budget-status.over   { background: rgba(16,185,129,0.1);  color: #059669; }
+    .budget-status.under  { background: rgba(245,158,11,0.1);  color: #d97706; }
+    .budget-status.equal  { background: rgba(100,116,139,0.1); color: var(--text-secondary); }
 
-    const previous =
-        parsed[parsed.length-2] || latest;
+    /* ── SPARKLINE ── */
+    .sparkline-section { position: relative; }
+    .sparkline-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-family: 'DM Mono', monospace;
+    }
+    .sparkline-wrap { position: relative; width: 100%; }
+    #sparkline-svg { width: 100%; display: block; overflow: visible; }
 
-    const latestActual =
-        latest.actual;
+    /* ── LEGEND ── */
+    .legend {
+      display: flex;
+      gap: 14px;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .legend-line { width: 14px; height: 2px; border-radius: 2px; }
 
-    const latestBudget =
-        latest.budget;
+    /* ── EMPTY FIELD HINTS ── */
+    .empty-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
 
-    const latestMonth =
-        latest.date.toLocaleString('default',{
-            month:'long',
-            year:'numeric'
-        });
+    /* ── TOOLTIP ── */
+    #spark-tooltip {
+      position: fixed;
+      background: var(--text-primary);
+      color: #fff;
+      font-size: 11px;
+      padding: 5px 9px;
+      border-radius: 6px;
+      pointer-events: none;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 100;
+      font-family: 'DM Mono', monospace;
+    }
+  </style>
 
-    document.getElementById('monthText').innerText =
-        latestMonth;
+<script>
+'use strict';
 
-    document.getElementById('heroValue').innerText =
-        latestActual.toLocaleString();
+(function () {
 
-    const mom =
-        ((latestActual-previous.actual)
-        /previous.actual)*100;
+  // ─── ENCODING IDs (must match .trex) ───────────────────────────────────────
+  const ENC = {
+    VALUE:       'value',
+    LABEL:       'label',
+    PERIOD:      'period',
+    TREND:       'trend',
+    TARGET:      'target',
+    COMP1_VALUE: 'comp1_value',
+    COMP1_LABEL: 'comp1_label',
+    COMP2_VALUE: 'comp2_value',
+    COMP2_LABEL: 'comp2_label',
+  };
 
-    const momArrow =
-        mom>=0 ? '▲':'▼';
+  let worksheet = null;
 
-    document.getElementById('momValue').innerHTML =
-        `${momArrow} ${Math.abs(mom).toFixed(1)}%`;
+  // ─── INIT ───────────────────────────────────────────────────────────────────
+  window.onload = function () {
+    tableau.extensions.initializeAsync().then(() => {
+      worksheet = tableau.extensions.worksheetContent.worksheet;
 
-    document.getElementById('momValue').className =
-        `stat-value ${mom>=0?'green':'red'}`;
+      // Listen for data changes (field drag/drop, filter changes, etc.)
+      worksheet.addEventListener(
+        tableau.TableauEventType.SummaryDataChanged,
+        handleDataChange
+      );
 
-    document.getElementById('momSub').innerText =
-        'Month over Month';
+      // Initial render
+      handleDataChange();
+    }, (err) => {
+      console.error('KPI Card init error:', err);
+      showPlaceholder('Initialization failed: ' + err.toString());
+    });
+  };
 
-    const budgetPct =
-        (latestActual/latestBudget)*100;
+  // ─── MAIN DATA + ENCODING HANDLER ──────────────────────────────────────────
+  async function handleDataChange () {
+    try {
+      const encodingMap  = await buildEncodingMap();
+      const summaryData  = await fetchSummaryData();
 
-    document.getElementById('achievePct').innerText =
-        `${budgetPct.toFixed(0)}%`;
+      renderCard(encodingMap, summaryData);
+    } catch (err) {
+      console.error('KPI Card render error:', err);
+    }
+  }
 
-    document.getElementById('progressBar').style.width =
-        `${Math.min(budgetPct,100)}%`;
+  // ─── BUILD ENCODING MAP ─────────────────────────────────────────────────────
+  // Returns { encodingId: [fieldName, ...], ... }  for encodings that have fields
+  async function buildEncodingMap () {
+    const visualSpec = await worksheet.getVisualSpecificationAsync();
+    const marksSpec  = visualSpec.marksSpecifications[visualSpec.activeMarksSpecificationIndex];
 
-    document.getElementById('insightTitle').innerText =
-        budgetPct>=100
-        ? 'Budget Achieved Successfully'
-        : 'Budget Below Target';
+    const map = {};
+    for (const encoding of marksSpec.encodings) {
+      if (!map[encoding.id]) map[encoding.id] = [];
+      if (encoding.field && encoding.field.name) {
+        map[encoding.id].push(encoding.field.name);
+      }
+    }
+    return map;
+  }
 
-    const labels =
-        parsed.map(d=>
-            d.date.toLocaleString('default',{
-                month:'short'
-            }));
-
-    const actuals =
-        parsed.map(d=>d.actual);
-
-    const ctx =
-        document.getElementById('trendChart');
-
-    const gradient =
-        ctx.getContext('2d')
-        .createLinearGradient(0,0,0,320);
-
-    gradient.addColorStop(0,'rgba(59,130,246,0.45)');
-    gradient.addColorStop(1,'rgba(59,130,246,0.02)');
-
-    chart = new Chart(ctx,{
-
-        type:'line',
-
-        data:{
-            labels:labels,
-
-            datasets:[{
-                label:'Actual',
-
-                data:actuals,
-
-                borderColor:'#2563eb',
-
-                backgroundColor:gradient,
-
-                fill:true,
-
-                tension:0.4,
-
-                pointRadius:5,
-
-                pointHoverRadius:8
-            }]
-        },
-
-        options:{
-
-            responsive:true,
-
-            plugins:{
-                legend:{
-                    display:false
-                },
-
-                tooltip:{
-                    enabled:true,
-                    backgroundColor:'#0f172a',
-                    padding:14,
-                    cornerRadius:12
-                }
-            },
-
-            scales:{
-
-                x:{
-                    grid:{
-                        display:false
-                    }
-                },
-
-                y:{
-                    grid:{
-                        color:'#e2e8f0'
-                    }
-                }
-            }
-        }
+  // ─── FETCH SUMMARY DATA ──────────────────────────────────────────────────────
+  async function fetchSummaryData () {
+    const reader = await worksheet.getSummaryDataReaderAsync(undefined, {
+      ignoreSelection: true,
     });
 
-});
+    const pages = [];
+    for (let p = 0; p < reader.pageCount; p++) {
+      pages.push(await reader.getPageAsync(p));
+    }
+    await reader.releaseAsync();
 
+    if (pages.length === 0) return { columns: [], rows: [] };
+
+    const columns = pages[0].columns.map(c => ({ name: c.fieldName, index: c.index }));
+    const rows    = pages.flatMap(page => page.data);
+    return { columns, rows };
+  }
+
+  // ─── RENDER CARD ─────────────────────────────────────────────────────────────
+  function renderCard (encodingMap, summaryData) {
+    const { columns, rows } = summaryData;
+
+    // Helper: get column index by field name
+    function colIdx (fieldName) {
+      const col = columns.find(c => c.name === fieldName);
+      return col ? col.index : -1;
+    }
+
+    // Helper: get numeric value from a DataValue
+    function numVal (dv) {
+      if (!dv) return null;
+      const n = parseFloat(dv.nativeValue !== undefined ? dv.nativeValue : dv.value);
+      return isNaN(n) ? null : n;
+    }
+
+    // Helper: get string value from a DataValue
+    function strVal (dv) {
+      if (!dv) return null;
+      const v = dv.formattedValue !== undefined ? dv.formattedValue : String(dv.value);
+      return v === '%null%' || v === 'Null' ? null : v;
+    }
+
+    // ── Gather values ──
+
+    // Main KPI value – take first row's value
+    const valueFields = encodingMap[ENC.VALUE] || [];
+    let mainValue     = null;
+    let mainFormatted = null;
+    if (valueFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(valueFields[0]);
+      if (idx >= 0) {
+        mainValue     = numVal(rows[0][idx]);
+        mainFormatted = rows[0][idx].formattedValue || formatNumber(mainValue);
+      }
+    }
+
+    // Label
+    const labelFields = encodingMap[ENC.LABEL] || [];
+    let cardTitle = null;
+    if (labelFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(labelFields[0]);
+      if (idx >= 0) cardTitle = strVal(rows[0][idx]);
+    }
+
+    // Period
+    const periodFields = encodingMap[ENC.PERIOD] || [];
+    let cardPeriod = null;
+    if (periodFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(periodFields[0]);
+      if (idx >= 0) cardPeriod = strVal(rows[0][idx]);
+    }
+
+    // Target / Budget
+    const targetFields = encodingMap[ENC.TARGET] || [];
+    let targetValue    = null;
+    let targetFormatted = null;
+    if (targetFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(targetFields[0]);
+      if (idx >= 0) {
+        targetValue     = numVal(rows[0][idx]);
+        targetFormatted = rows[0][idx].formattedValue || formatNumber(targetValue);
+      }
+    }
+
+    // Comparison 1
+    const c1vFields = encodingMap[ENC.COMP1_VALUE] || [];
+    const c1lFields = encodingMap[ENC.COMP1_LABEL] || [];
+    let comp1Value  = null;
+    let comp1Label  = null;
+    if (c1vFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(c1vFields[0]);
+      if (idx >= 0) comp1Value = numVal(rows[0][idx]);
+    }
+    if (c1lFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(c1lFields[0]);
+      if (idx >= 0) comp1Label = strVal(rows[0][idx]);
+    }
+
+    // Comparison 2
+    const c2vFields = encodingMap[ENC.COMP2_VALUE] || [];
+    const c2lFields = encodingMap[ENC.COMP2_LABEL] || [];
+    let comp2Value  = null;
+    let comp2Label  = null;
+    if (c2vFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(c2vFields[0]);
+      if (idx >= 0) comp2Value = numVal(rows[0][idx]);
+    }
+    if (c2lFields.length > 0 && rows.length > 0) {
+      const idx = colIdx(c2lFields[0]);
+      if (idx >= 0) comp2Label = strVal(rows[0][idx]);
+    }
+
+    // Trend sparkline values – collect all rows for the trend field
+    const trendFields = encodingMap[ENC.TREND] || [];
+    let trendValues   = [];
+    if (trendFields.length > 0) {
+      const idx = colIdx(trendFields[0]);
+      if (idx >= 0) {
+        trendValues = rows.map(r => numVal(r[idx])).filter(v => v !== null);
+      }
+    }
+
+    // ── If nothing is mapped yet, show placeholder ──
+    const hasAny = mainValue !== null || cardTitle || trendValues.length > 0;
+    if (!hasAny) {
+      showPlaceholder();
+      return;
+    }
+
+    // ── Populate DOM ──
+    hidePlaceholder();
+
+    // Title & period
+    el('card-title').textContent = cardTitle || (valueFields[0] || 'KPI Metric');
+    el('card-period').textContent = cardPeriod || '';
+
+    // Main value
+    el('main-value').textContent = mainFormatted !== null ? mainFormatted : (mainValue !== null ? formatNumber(mainValue) : '—');
+
+    // Status dot
+    const dot = el('status-dot');
+    if (mainValue !== null && targetValue !== null) {
+      dot.className = 'status-dot ' + (mainValue >= targetValue ? 'up' : 'down');
+    } else {
+      dot.className = 'status-dot up';
+    }
+
+    // Comparisons
+    renderComp(
+      'comp1-row', 'comp1-label', 'comp1-pct-badge', 'comp1-abs-badge',
+      comp1Value, comp1Label, mainValue, c1vFields[0]
+    );
+    renderComp(
+      'comp2-row', 'comp2-label', 'comp2-pct-badge', 'comp2-abs-badge',
+      comp2Value, comp2Label, mainValue, c2vFields[0]
+    );
+
+    // Hide comparisons section if neither is set
+    const showComps = comp1Value !== null || comp2Value !== null;
+    el('comparisons-section').style.display = showComps ? '' : 'none';
+
+    // Budget / target
+    renderBudget(mainValue, targetValue, targetFormatted);
+
+    // Sparkline
+    renderSparkline(trendValues, targetValue);
+  }
+
+  // ─── RENDER COMPARISON ROW ────────────────────────────────────────────────
+  function renderComp (rowId, labelId, pctId, absId, compValue, labelText, mainValue, fallbackField) {
+    const row = el(rowId);
+    if (compValue === null) {
+      row.style.display = 'none';
+      return;
+    }
+    row.style.display = '';
+
+    // Label
+    el(labelId).textContent = labelText || (fallbackField ? 'vs. ' + fallbackField : 'Comparison');
+
+    // Percentage change vs main value
+    const pctEl = el(pctId);
+    const absEl = el(absId);
+
+    if (mainValue !== null && mainValue !== 0) {
+      const prevValue = mainValue - compValue;  // compValue is the delta, OR it could be the previous value
+      // Detect whether compValue looks like a delta (small relative to mainValue) or an absolute
+      // We treat it as a delta/absolute difference:
+      const pct  = mainValue !== 0 ? (compValue / Math.abs(mainValue - compValue)) * 100 : 0;
+      const isUp = compValue >= 0;
+      const cls  = isUp ? 'badge up' : 'badge down';
+      const arrow = isUp ? '↑' : '↓';
+      const absPct = Math.abs(((compValue) / (mainValue - compValue)) * 100);
+
+      pctEl.className = cls;
+      pctEl.textContent = arrow + ' ' + (isNaN(absPct) ? '—' : absPct.toFixed(1)) + '%';
+
+      absEl.className = cls;
+      absEl.textContent = (isUp ? '+' : '') + formatNumber(compValue);
+    } else {
+      // Just show the raw value
+      const isUp = compValue >= 0;
+      pctEl.className = 'badge ' + (isUp ? 'up' : 'down');
+      pctEl.textContent = (isUp ? '+' : '') + formatNumber(compValue);
+      absEl.className = 'badge neutral';
+      absEl.textContent = '';
+    }
+  }
+
+  // ─── RENDER BUDGET BAR ────────────────────────────────────────────────────
+  function renderBudget (mainValue, targetValue, targetFormatted) {
+    const section = el('budget-section');
+    if (mainValue === null || targetValue === null || targetValue === 0) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+
+    const pct     = (mainValue / targetValue) * 100;
+    const clipped = Math.min(Math.max(pct, 0), 100);
+    const isOver  = mainValue >= targetValue;
+    const diff    = Math.abs(mainValue - targetValue);
+    const diffPct = Math.abs(pct - 100).toFixed(1);
+
+    const fill    = el('budget-fill');
+    fill.style.width = clipped + '%';
+    fill.className = 'budget-fill ' + (isOver ? 'over' : 'under');
+
+    el('budget-pct').textContent = Math.round(pct) + '%';
+    el('budget-target-val').textContent = targetFormatted || formatNumber(targetValue);
+
+    const statusEl = el('budget-status');
+    if (isOver) {
+      statusEl.className = 'budget-status over';
+      statusEl.textContent = diffPct + '% ABOVE BUDGET';
+    } else {
+      statusEl.className = 'budget-status under';
+      statusEl.textContent = diffPct + '% BELOW BUDGET';
+    }
+  }
+
+  // ─── RENDER SPARKLINE ─────────────────────────────────────────────────────
+  function renderSparkline (values, targetValue) {
+    const section = el('sparkline-section');
+    if (values.length < 2) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+
+    const svg    = el('sparkline-svg');
+    const W      = svg.clientWidth || 460;
+    const H      = 64;
+    const PAD    = { top: 8, right: 6, bottom: 8, left: 6 };
+    const plotW  = W - PAD.left - PAD.right;
+    const plotH  = H - PAD.top - PAD.bottom;
+
+    const minV = Math.min(...values);
+    const maxV = Math.max(...values);
+    const range = maxV - minV || 1;
+
+    const scaleX = i  => PAD.left + (i / (values.length - 1)) * plotW;
+    const scaleY = v  => PAD.top + plotH - ((v - minV) / range) * plotH;
+
+    // Build path data
+    const pts = values.map((v, i) => [scaleX(i), scaleY(v)]);
+    const linePath = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+
+    // Area fill path (close to bottom)
+    const areaPath = linePath + ` L${pts[pts.length-1][0]},${H - PAD.bottom} L${pts[0][0]},${H - PAD.bottom} Z`;
+
+    // Color each segment based on vs target
+    function segColor (v) {
+      if (targetValue === null) return '#0ea5e9';
+      if (v >= targetValue) return '#10b981';   // over/on target
+      return '#f59e0b';                           // under target
+    }
+
+    // Build SVG
+    const ns = 'http://www.w3.org/2000/svg';
+
+    // Clear previous
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    // Gradient defs
+    const defs = document.createElementNS(ns, 'defs');
+    const grad = document.createElementNS(ns, 'linearGradient');
+    grad.setAttribute('id', 'sparkGrad');
+    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+    const s1 = document.createElementNS(ns, 'stop');
+    s1.setAttribute('offset', '0%');
+    s1.setAttribute('stop-color', '#0ea5e9');
+    s1.setAttribute('stop-opacity', '0.15');
+    const s2 = document.createElementNS(ns, 'stop');
+    s2.setAttribute('offset', '100%');
+    s2.setAttribute('stop-color', '#0ea5e9');
+    s2.setAttribute('stop-opacity', '0');
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // Area fill
+    const areaEl = document.createElementNS(ns, 'path');
+    areaEl.setAttribute('d', areaPath);
+    areaEl.setAttribute('fill', 'url(#sparkGrad)');
+    svg.appendChild(areaEl);
+
+    // Target line
+    if (targetValue !== null) {
+      const ty = scaleY(Math.min(Math.max(targetValue, minV), maxV));
+      const tLine = document.createElementNS(ns, 'line');
+      tLine.setAttribute('x1', PAD.left);
+      tLine.setAttribute('y1', ty);
+      tLine.setAttribute('x2', W - PAD.right);
+      tLine.setAttribute('y2', ty);
+      tLine.setAttribute('stroke', '#94a3b8');
+      tLine.setAttribute('stroke-width', '1');
+      tLine.setAttribute('stroke-dasharray', '4,3');
+      svg.appendChild(tLine);
+    }
+
+    // Main line (coloured segments)
+    for (let i = 1; i < pts.length; i++) {
+      const seg = document.createElementNS(ns, 'line');
+      seg.setAttribute('x1', pts[i-1][0]);
+      seg.setAttribute('y1', pts[i-1][1]);
+      seg.setAttribute('x2', pts[i][0]);
+      seg.setAttribute('y2', pts[i][1]);
+      seg.setAttribute('stroke', segColor(values[i]));
+      seg.setAttribute('stroke-width', '2');
+      seg.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(seg);
+    }
+
+    // Dots
+    pts.forEach(([x, y], i) => {
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', x);
+      c.setAttribute('cy', y);
+      c.setAttribute('r', '3');
+      c.setAttribute('fill', segColor(values[i]));
+      c.setAttribute('stroke', '#fff');
+      c.setAttribute('stroke-width', '1.5');
+      c.style.cursor = 'pointer';
+
+      // Tooltip
+      c.addEventListener('mouseenter', (e) => showSparkTooltip(e, formatNumber(values[i])));
+      c.addEventListener('mousemove',  (e) => moveSparkTooltip(e));
+      c.addEventListener('mouseleave', hideSparkTooltip);
+
+      svg.appendChild(c);
+    });
+
+    // FORECAST label at end
+    if (values.length > 0) {
+      const lastPt = pts[pts.length - 1];
+      const label  = document.createElementNS(ns, 'text');
+      label.setAttribute('x', lastPt[0] - 2);
+      label.setAttribute('y', lastPt[1] - 7);
+      label.setAttribute('text-anchor', 'end');
+      label.setAttribute('font-size', '8');
+      label.setAttribute('font-family', 'DM Mono, monospace');
+      label.setAttribute('fill', '#94a3b8');
+      label.setAttribute('letter-spacing', '0.05em');
+      label.textContent = 'LATEST';
+      svg.appendChild(label);
+    }
+  }
+
+  // ─── SPARKLINE TOOLTIP ───────────────────────────────────────────────────
+  const tooltip = document.getElementById('spark-tooltip');
+  function showSparkTooltip (e, text) {
+    tooltip.textContent = text;
+    tooltip.style.opacity = '1';
+    moveSparkTooltip(e);
+  }
+  function moveSparkTooltip (e) {
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top  = (e.clientY - 28) + 'px';
+  }
+  function hideSparkTooltip () {
+    tooltip.style.opacity = '0';
+  }
+
+  // ─── UTILITIES ─────────────────────────────────────────────────────────────
+  function el (id) { return document.getElementById(id); }
+
+  function showPlaceholder (msg) {
+    el('placeholder').style.display = '';
+    el('kpi-card').style.display    = 'none';
+    if (msg) {
+      const div = el('placeholder');
+      div.querySelector('div:last-child').textContent = msg;
+    }
+  }
+
+  function hidePlaceholder () {
+    el('placeholder').style.display = 'none';
+    el('kpi-card').style.display    = '';
+  }
+
+  function formatNumber (n) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+    if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(2) + 'M';
+    if (abs >= 1_000)     return sign + '$' + abs.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    return sign + '$' + abs.toFixed(2);
+  }
+
+})();
 </script>
+</head>
+<body>
 
+  <!-- Placeholder shown before data is loaded -->
+  <div id="placeholder">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <rect x="4" y="4" width="40" height="40" rx="8" stroke="#94a3b8" stroke-width="2"/>
+      <path d="M12 30 L18 22 L24 26 L32 16 L36 20" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="36" cy="20" r="2" fill="#94a3b8"/>
+    </svg>
+    <div style="font-weight:600;color:#64748b;">KPI Card</div>
+    <div>Drag fields onto the encoding tiles<br>on the Marks card to get started.</div>
+  </div>
+
+  <!-- The actual KPI card -->
+  <div id="kpi-card">
+    <!-- Header -->
+    <div class="card-header">
+      <div>
+        <div class="card-title" id="card-title">KPI Metric</div>
+        <div class="card-period" id="card-period"></div>
+      </div>
+    </div>
+
+    <!-- Main value -->
+    <div class="main-value-row">
+      <div class="main-value" id="main-value">—</div>
+      <div class="status-dot" id="status-dot"></div>
+    </div>
+
+    <!-- Comparisons -->
+    <div class="comparisons" id="comparisons-section">
+      <div class="comp-row" id="comp1-row" style="display:none">
+        <span class="comp-label" id="comp1-label"></span>
+        <div class="comp-badges">
+          <span class="badge" id="comp1-pct-badge"></span>
+          <span class="badge" id="comp1-abs-badge"></span>
+        </div>
+      </div>
+      <div class="comp-row" id="comp2-row" style="display:none">
+        <span class="comp-label" id="comp2-label"></span>
+        <div class="comp-badges">
+          <span class="badge" id="comp2-pct-badge"></span>
+          <span class="badge" id="comp2-abs-badge"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Budget / Target -->
+    <div class="budget-section" id="budget-section" style="display:none">
+      <span class="budget-label" id="budget-vs-label">vs. Budget</span>
+      <div class="budget-track-wrap">
+        <div class="budget-track">
+          <div class="budget-fill" id="budget-fill"></div>
+        </div>
+        <div class="budget-meta">
+          <span class="pct" id="budget-pct"></span>
+          <span class="target-val" id="budget-target-val"></span>
+        </div>
+      </div>
+      <span class="budget-status" id="budget-status"></span>
+    </div>
+
+    <!-- Sparkline -->
+    <div class="sparkline-section" id="sparkline-section" style="display:none">
+      <div class="sparkline-wrap">
+        <svg id="sparkline-svg" height="64"></svg>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#10b981"></div>Target Hit
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#0ea5e9"></div>Over Achieved
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#f59e0b"></div>Under Achieved
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="spark-tooltip"></div>
+
+  <script src="./KPICard.js"></script>
 </body>
 </html>
