@@ -1,0 +1,59 @@
+no_of_accounts_query = """(
+SELECT 
+    BRANCH, 
+    account_source, 
+    COUNT(*) as account_count
+FROM (
+    SELECT 
+        LNP3.LNBRCH AS BRANCH,
+        'lnp00301' AS account_source
+    FROM icbsprddt1.lnp00301 LNP3
+    INNER JOIN (
+        SELECT CU3.CUNBR, CU9.account_number_cu9
+        FROM ICBSPRDDT1.CUP00301 CU3
+        INNER JOIN (
+            SELECT cux1cs, cux1ac AS account_number_cu9
+            FROM icbsprddt1.cup00901 cu9
+            WHERE cuxrel IN ('SOW', 'JOF', 'JAF', 'OWN')
+        ) CU9 ON CU9.cux1cs = CU3.CUNBR
+    ) CUP ON CUP.account_number_cu9 = LNP3.LNNOTE
+    WHERE LNBK = 1 AND LNSTAT <> 'C'
+
+    UNION ALL
+
+    SELECT 
+        tap2.DMBRCH AS BRANCH,
+        'TAP00201' AS account_source
+    FROM icbsprddt1.TAP00201 tap2
+    INNER JOIN (
+        SELECT CU3.CUNBR, CU9.account_number_cu9
+        FROM ICBSPRDDT1.CUP00301 CU3
+        INNER JOIN (
+            SELECT cux1cs, cux1ac AS account_number_cu9
+            FROM icbsprddt1.cup00901 cu9
+            WHERE cuxrel IN ('SOW', 'JOF', 'JAF', 'OWN')
+        ) CU9 ON CU9.cux1cs = CU3.CUNBR
+    ) CUP ON DECIMAL(RIGHT(CUP.account_number_cu9, 10), 10, 0) = tap2.DMACCT 
+    WHERE DMBK = 1 AND DMTYP = 1
+
+    UNION ALL
+
+    SELECT 
+        TAP3.TMBRCH AS BRANCH,
+        'Tmp003sq' AS account_source
+    FROM ICBSPRDDT1.Tmp003sq TAP3
+    INNER JOIN (
+        SELECT CU3.CUNBR, CU9.account_number_cu9
+        FROM ICBSPRDDT1.CUP00301 CU3
+        INNER JOIN (
+            SELECT cux1cs, cux1ac AS account_number_cu9
+            FROM icbsprddt1.cup00901 cu9
+            WHERE cuxrel IN ('SOW', 'JOF', 'JAF', 'OWN')
+        ) CU9 ON CU9.cux1cs = CU3.CUNBR
+    ) CUP ON CUP.account_number_cu9 = TAP3.TMACCT
+    WHERE TAP3.TMSTAT = 1
+) AS combined_data
+GROUP BY 
+    BRANCH, 
+    account_source
+) AS final_summary""" # <--- Wrap in () and add an alias here
