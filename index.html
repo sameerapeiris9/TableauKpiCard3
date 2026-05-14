@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>Modern KPI Card</title>
+<meta charset="UTF-8">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-<script src="https://unpkg.com/@tableau/extensions-api/lib/tableau.extensions.1.latest.js"></script>
+<script src="https://tableau.github.io/extensions-api/lib/tableau.extensions.1.latest.js"></script>
 
 <style>
 
@@ -16,125 +12,99 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Inter,Segoe UI,sans-serif;
+    font-family:Inter,sans-serif;
 }
 
 body{
-    background:#f5f7fb;
-    padding:24px;
+    background:#f4f7fb;
+    padding:20px;
 }
 
 .card{
     width:100%;
-    background:white;
     border-radius:32px;
-    padding:28px;
+    background:white;
+    padding:34px;
     box-shadow:
-        0 10px 40px rgba(15,23,42,.05),
-        0 2px 10px rgba(15,23,42,.04);
-    border:1px solid #edf2f7;
+        0 10px 40px rgba(15,23,42,0.06);
 }
 
-/* ===========================
-HEADER
-=========================== */
-
-.header{
+.top{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
-    margin-bottom:28px;
 }
 
-.left-head{
+.left{
     display:flex;
-    gap:18px;
-    align-items:flex-start;
+    gap:20px;
 }
 
-.icon-box{
-    width:64px;
-    height:64px;
-    border-radius:20px;
-    background:linear-gradient(135deg,#ede9fe,#f5f3ff);
+.icon{
+    width:76px;
+    height:76px;
+    border-radius:24px;
+    background:linear-gradient(135deg,#eef2ff,#f3e8ff);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:28px;
+    font-size:34px;
 }
 
 .title{
-    font-size:18px;
+    font-size:20px;
     font-weight:700;
     color:#0f172a;
 }
 
 .subtitle{
-    margin-top:6px;
+    margin-top:8px;
     color:#64748b;
-    font-size:14px;
+    font-size:15px;
 }
-
-/* ===========================
-MAIN KPI
-=========================== */
 
 .hero{
-    display:flex;
-    justify-content:space-between;
-    gap:24px;
-    margin-bottom:28px;
-}
-
-.hero-left{
-    flex:1;
-}
-
-.hero-value{
-    font-size:72px;
-    line-height:1;
+    margin-top:28px;
+    font-size:78px;
     font-weight:800;
-    color:#0b132b;
-    letter-spacing:-2px;
+    color:#020617;
 }
 
 .hero-label{
-    margin-top:12px;
     color:#64748b;
-    font-size:16px;
-    font-weight:600;
+    margin-top:6px;
+    letter-spacing:1px;
+    font-size:15px;
 }
 
-.hero-month{
-    margin-top:8px;
-    color:#6d28d9;
-    font-weight:700;
-    font-size:30px;
-}
-
-.compare-wrap{
+.stats{
     display:flex;
     gap:18px;
 }
 
-.compare-card{
-    width:230px;
-    border-radius:26px;
-    padding:24px;
-    background:#fbfcff;
+.stat-box{
+    width:240px;
+    border-radius:28px;
+    padding:28px;
+    background:#f8fafc;
     border:1px solid #e2e8f0;
 }
 
-.compare-title{
-    font-size:14px;
+.stat-title{
     color:#64748b;
+    font-size:14px;
     font-weight:700;
-    margin-bottom:18px;
 }
 
-.compare-value{
+.stat-value{
+    margin-top:26px;
     font-size:42px;
     font-weight:800;
+}
+
+.stat-sub{
+    margin-top:8px;
+    color:#64748b;
 }
 
 .green{
@@ -145,94 +115,42 @@ MAIN KPI
     color:#dc2626;
 }
 
-.compare-sub{
-    margin-top:12px;
-    color:#64748b;
-    font-size:14px;
+.insight{
+    margin-top:28px;
+    border-radius:28px;
+    padding:28px;
+    background:linear-gradient(90deg,#ecfdf5,#f0fdf4);
+    border:1px solid #bbf7d0;
 }
 
-/* ===========================
-ACHIEVEMENT
-=========================== */
-
-.achievement{
-    margin-bottom:28px;
-    border-radius:26px;
-    padding:24px 28px;
-    background:linear-gradient(90deg,#effdf5,#f8fffb);
-    border:1px solid #d1fae5;
-
+.insight-top{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:24px;
 }
 
-.ach-left{
-    display:flex;
-    gap:18px;
-    align-items:center;
-}
-
-.check{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:#22c55e;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-    font-weight:700;
-}
-
-.ach-title{
+.insight-title{
     font-size:18px;
     font-weight:700;
-    color:#15803d;
-}
-
-.ach-sub{
-    margin-top:6px;
-    color:#475569;
-}
-
-.progress-wrap{
-    width:420px;
-}
-
-.progress-top{
-    display:flex;
-    justify-content:flex-end;
-    margin-bottom:10px;
-}
-
-.progress-val{
-    font-size:18px;
-    font-weight:800;
-    color:#16a34a;
+    color:#166534;
 }
 
 .progress{
-    height:12px;
+    margin-top:20px;
+    height:16px;
     border-radius:999px;
-    background:#e2e8f0;
+    background:#dcfce7;
     overflow:hidden;
-    position:relative;
 }
 
-.progress-fill{
+.bar{
     height:100%;
     border-radius:999px;
     background:linear-gradient(90deg,#22c55e,#86efac);
 }
 
-/* ===========================
-TREND
-=========================== */
-
 .chart-card{
+    margin-top:28px;
     background:white;
     border-radius:28px;
     border:1px solid #e2e8f0;
@@ -240,29 +158,13 @@ TREND
 }
 
 .chart-title{
-    font-size:18px;
+    font-size:22px;
     font-weight:700;
-    color:#0f172a;
-    margin-bottom:22px;
+    margin-bottom:20px;
 }
 
 canvas{
-    width:100% !important;
-    height:360px !important;
-}
-
-/* ===========================
-INSIGHT
-=========================== */
-
-.insight{
-    margin-top:22px;
-    border-radius:20px;
-    padding:18px;
-    background:#f8fafc;
-    color:#1e40af;
-    text-align:center;
-    font-size:16px;
+    height:320px !important;
 }
 
 </style>
@@ -272,124 +174,95 @@ INSIGHT
 
 <div class="card">
 
-    <div class="header">
+    <div class="top">
 
-        <div class="left-head">
+        <div>
+            <div class="left">
 
-            <div class="icon-box">
-                📈
-            </div>
-
-            <div>
-                <div class="title">KPI Performance</div>
-                <div class="subtitle" id="latestInfo">
-                    Latest Available Month
+                <div class="icon">
+                    📈
                 </div>
+
+                <div>
+                    <div class="title">
+                        KPI Performance
+                    </div>
+
+                    <div class="subtitle" id="monthText">
+                        Latest Available Month
+                    </div>
+                </div>
+
             </div>
 
-        </div>
-
-    </div>
-
-    <!-- HERO -->
-
-    <div class="hero">
-
-        <div class="hero-left">
-
-            <div class="hero-value" id="heroValue">
-                0
+            <div class="hero" id="heroValue">
+                -
             </div>
 
             <div class="hero-label">
                 LATEST MONTH VALUE
             </div>
-
-            <div class="hero-month" id="heroMonth">
-                -
-            </div>
-
         </div>
 
-        <div class="compare-wrap">
+        <div class="stats">
 
-            <div class="compare-card">
-
-                <div class="compare-title">
+            <div class="stat-box">
+                <div class="stat-title">
                     VS LAST MONTH
                 </div>
 
-                <div class="compare-value" id="momValue">
+                <div class="stat-value" id="momValue">
                     -
                 </div>
 
-                <div class="compare-sub" id="momSub">
+                <div class="stat-sub" id="momSub">
                     -
                 </div>
-
             </div>
 
-            <div class="compare-card">
-
-                <div class="compare-title">
+            <div class="stat-box">
+                <div class="stat-title">
                     VS LAST YEAR END
                 </div>
 
-                <div class="compare-value" id="yoyValue">
+                <div class="stat-value" id="yoyValue">
                     -
                 </div>
 
-                <div class="compare-sub" id="yoySub">
+                <div class="stat-sub" id="yoySub">
                     -
                 </div>
-
             </div>
 
         </div>
 
     </div>
 
-    <!-- ACHIEVEMENT -->
+    <div class="insight">
 
-    <div class="achievement">
-
-        <div class="ach-left">
-
-            <div class="check">
-                ✓
-            </div>
+        <div class="insight-top">
 
             <div>
-
-                <div class="ach-title" id="achTitle">
-                    Budget Achieved
+                <div class="insight-title" id="insightTitle">
+                    Budget Achievement
                 </div>
 
-                <div class="ach-sub" id="achSub">
+                <div style="margin-top:6px;color:#64748b">
                     Actual vs Budget
                 </div>
+            </div>
 
+            <div style="font-size:38px;font-weight:800;color:#16a34a" id="achievePct">
+                0%
             </div>
 
         </div>
 
-        <div class="progress-wrap">
-
-            <div class="progress-top">
-                <div class="progress-val" id="progressVal">
-                    0%
-                </div>
-            </div>
-
-            <div class="progress">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-
+        <div class="progress">
+            <div class="bar" id="progressBar"></div>
         </div>
 
     </div>
-
-    <!-- TREND -->
 
     <div class="chart-card">
 
@@ -399,10 +272,6 @@ INSIGHT
 
         <canvas id="trendChart"></canvas>
 
-        <div class="insight" id="insight">
-            Loading insight...
-        </div>
-
     </div>
 
 </div>
@@ -411,9 +280,7 @@ INSIGHT
 
 let chart;
 
-async function init(){
-
-    await tableau.extensions.initializeAsync();
+tableau.extensions.initializeAsync().then(async()=>{
 
     const worksheet =
         tableau.extensions.dashboardContent.dashboard.worksheets[0];
@@ -421,179 +288,139 @@ async function init(){
     const data =
         await worksheet.getSummaryDataAsync();
 
-    processData(data);
-}
+    const columns = data.columns;
+    const rows = data.data;
 
-function processData(data){
+    const actualIndex =
+        columns.findIndex(c =>
+            c.fieldName.toLowerCase().includes('actual'));
 
-    const columns = data.columns.map(c => c.fieldName);
+    const budgetIndex =
+        columns.findIndex(c =>
+            c.fieldName.toLowerCase().includes('budget'));
 
-    const actualIndex = columns.findIndex(c =>
-        c.toLowerCase().includes("actual"));
+    const dateIndex =
+        columns.findIndex(c =>
+            c.fieldName.toLowerCase().includes('date'));
 
-    const budgetIndex = columns.findIndex(c =>
-        c.toLowerCase().includes("budget"));
+    if(actualIndex===-1 || budgetIndex===-1 || dateIndex===-1){
+        alert("Actual/Budget/Date fields not found");
+        return;
+    }
 
-    const dateIndex = columns.findIndex(c =>
-        c.toLowerCase().includes("date") ||
-        c.toLowerCase().includes("month"));
+    const parsed = rows.map(r=>({
 
-    const rows = data.data.map(r => ({
-        actual: Number(r[actualIndex]?.value || 0),
-        budget: Number(r[budgetIndex]?.value || 0),
-        date: new Date(r[dateIndex]?.value)
-    }));
+        actual:
+            Number(r[actualIndex].value),
 
-    rows.sort((a,b)=>a.date-b.date);
+        budget:
+            Number(r[budgetIndex].value),
 
-    const latest = rows[rows.length-1];
-    const previous = rows[rows.length-2] || latest;
+        date:
+            new Date(r[dateIndex].value)
 
-    const lastYearEnd =
-        rows.find(r =>
-            r.date.getMonth()===11 &&
-            r.date.getFullYear()===latest.date.getFullYear()-1
-        ) || previous;
+    }))
+    .filter(d=>!isNaN(d.actual));
 
-    // =========================
-    // HERO
-    // =========================
+    parsed.sort((a,b)=>a.date-b.date);
 
-    document.getElementById("heroValue").innerHTML =
-        latest.actual.toLocaleString();
+    const latest =
+        parsed[parsed.length-1];
 
-    document.getElementById("heroMonth").innerHTML =
-        latest.date.toLocaleString("default",
-        {month:"long",year:"numeric"});
+    const previous =
+        parsed[parsed.length-2] || latest;
 
-    document.getElementById("latestInfo").innerHTML =
-        `As of ${latest.date.toLocaleString("default",
-        {month:"long",year:"numeric"})} (Latest Available)`;
+    const latestActual =
+        latest.actual;
 
+    const latestBudget =
+        latest.budget;
 
-    // =========================
-    // MOM
-    // =========================
+    const latestMonth =
+        latest.date.toLocaleString('default',{
+            month:'long',
+            year:'numeric'
+        });
+
+    document.getElementById('monthText').innerText =
+        latestMonth;
+
+    document.getElementById('heroValue').innerText =
+        latestActual.toLocaleString();
 
     const mom =
-        ((latest.actual-previous.actual)/previous.actual)*100;
+        ((latestActual-previous.actual)
+        /previous.actual)*100;
 
-    const momEl =
-        document.getElementById("momValue");
+    const momArrow =
+        mom>=0 ? '▲':'▼';
 
-    momEl.innerHTML =
-        `${mom>=0?'↑':'↓'} ${Math.abs(mom).toFixed(1)}%`;
+    document.getElementById('momValue').innerHTML =
+        `${momArrow} ${Math.abs(mom).toFixed(1)}%`;
 
-    momEl.className =
-        `compare-value ${mom>=0?'green':'red'}`;
+    document.getElementById('momValue').className =
+        `stat-value ${mom>=0?'green':'red'}`;
 
-    document.getElementById("momSub").innerHTML =
-        previous.actual.toLocaleString();
+    document.getElementById('momSub').innerText =
+        'Month over Month';
 
+    const budgetPct =
+        (latestActual/latestBudget)*100;
 
-    // =========================
-    // YOY
-    // =========================
+    document.getElementById('achievePct').innerText =
+        `${budgetPct.toFixed(0)}%`;
 
-    const yoy =
-        ((latest.actual-lastYearEnd.actual)/
-        lastYearEnd.actual)*100;
+    document.getElementById('progressBar').style.width =
+        `${Math.min(budgetPct,100)}%`;
 
-    const yoyEl =
-        document.getElementById("yoyValue");
+    document.getElementById('insightTitle').innerText =
+        budgetPct>=100
+        ? 'Budget Achieved Successfully'
+        : 'Budget Below Target';
 
-    yoyEl.innerHTML =
-        `${yoy>=0?'↑':'↓'} ${Math.abs(yoy).toFixed(1)}%`;
+    const labels =
+        parsed.map(d=>
+            d.date.toLocaleString('default',{
+                month:'short'
+            }));
 
-    yoyEl.className =
-        `compare-value ${yoy>=0?'green':'red'}`;
-
-    document.getElementById("yoySub").innerHTML =
-        lastYearEnd.actual.toLocaleString();
-
-
-    // =========================
-    // ACHIEVEMENT
-    // =========================
-
-    const achievement =
-        (latest.actual/latest.budget)*100;
-
-    document.getElementById("progressVal").innerHTML =
-        achievement.toFixed(1)+"%";
-
-    document.getElementById("progressFill").style.width =
-        Math.min(achievement,120)+"%";
-
-    document.getElementById("achTitle").innerHTML =
-        achievement>=100
-        ? "Budget achieved successfully!"
-        : "Budget target not achieved";
-
-    document.getElementById("achSub").innerHTML =
-        `Actual is ${achievement.toFixed(1)}% of Budget`;
-
-    // =========================
-    // INSIGHT
-    // =========================
-
-    const exceeded =
-        rows.filter(r => r.actual >= r.budget).length;
-
-    document.getElementById("insight").innerHTML =
-        `Actual exceeded budget in ${exceeded}
-        of ${rows.length} months.`;
-
-
-    // =========================
-    // CHART
-    // =========================
+    const actuals =
+        parsed.map(d=>d.actual);
 
     const ctx =
-        document.getElementById("trendChart")
-        .getContext("2d");
+        document.getElementById('trendChart');
 
     const gradient =
-        ctx.createLinearGradient(0,0,0,400);
+        ctx.getContext('2d')
+        .createLinearGradient(0,0,0,320);
 
-    gradient.addColorStop(0,
-        "rgba(109,40,217,0.35)");
+    gradient.addColorStop(0,'rgba(59,130,246,0.45)');
+    gradient.addColorStop(1,'rgba(59,130,246,0.02)');
 
-    gradient.addColorStop(1,
-        "rgba(109,40,217,0)");
+    chart = new Chart(ctx,{
 
-    chart = new Chart(ctx, {
-
-        type:"line",
+        type:'line',
 
         data:{
-            labels: rows.map(r =>
-                r.date.toLocaleString("default",
-                {month:"short",year:"numeric"})),
+            labels:labels,
 
-            datasets:[
+            datasets:[{
+                label:'Actual',
 
-                {
-                    label:"Actual",
-                    data: rows.map(r=>r.actual),
-                    borderColor:"#6d28d9",
-                    backgroundColor:gradient,
-                    fill:true,
-                    tension:.45,
-                    pointRadius:5,
-                    pointHoverRadius:8
-                },
+                data:actuals,
 
-                {
-                    label:"Budget",
-                    data: rows.map(r=>r.budget),
-                    borderColor:"#3b82f6",
-                    borderDash:[6,6],
-                    tension:.45,
-                    pointRadius:4
-                }
+                borderColor:'#2563eb',
 
-            ]
+                backgroundColor:gradient,
+
+                fill:true,
+
+                tension:0.4,
+
+                pointRadius:5,
+
+                pointHoverRadius:8
+            }]
         },
 
         options:{
@@ -602,25 +429,19 @@ function processData(data){
 
             plugins:{
                 legend:{
-                    position:"top"
+                    display:false
                 },
 
                 tooltip:{
-                    backgroundColor:"#0f172a",
+                    enabled:true,
+                    backgroundColor:'#0f172a',
                     padding:14,
-                    cornerRadius:14,
-
-                    callbacks:{
-                        label:function(context){
-                            return context.dataset.label
-                            + ": "
-                            + context.parsed.y.toLocaleString();
-                        }
-                    }
+                    cornerRadius:12
                 }
             },
 
             scales:{
+
                 x:{
                     grid:{
                         display:false
@@ -629,16 +450,14 @@ function processData(data){
 
                 y:{
                     grid:{
-                        color:"#e2e8f0"
+                        color:'#e2e8f0'
                     }
                 }
             }
         }
     });
 
-}
-
-init();
+});
 
 </script>
 
