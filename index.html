@@ -4,212 +4,196 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>KPI Card</title>
-
-<!-- Tableau Extensions API – adjust relative path if needed -->
 <script src="../../lib/tableau.extensions.1.latest.js"></script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ─── RESET ─────────────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-/* ─── TOKENS ─────────────────────────────────────────────────────────────── */
 :root{
-  --bg:       #f0f4f8;
-  --card:     #ffffff;
-  --border:   #e2e8f0;
-  --t1:       #0f172a;
-  --t2:       #475569;
-  --t3:       #94a3b8;
-  --up:       #059669;
-  --up-bg:    rgba(5,150,105,.10);
-  --dn:       #dc2626;
-  --dn-bg:    rgba(220,38,38,.10);
-  --warn:     #d97706;
-  --warn-bg:  rgba(217,119,6,.10);
-  --blue:     #0284c7;
-  --blue-bg:  rgba(2,132,199,.10);
-  --radius:   14px;
-  --shadow:   0 2px 8px rgba(15,23,42,.07),0 8px 24px rgba(15,23,42,.06);
-  --mono:     'IBM Plex Mono',monospace;
-  --sans:     'IBM Plex Sans',sans-serif;
+  --page-bg:   #f5f5f2;
+  --card-bg:   #ffffff;
+  --border:    rgba(0,0,0,0.08);
+  --t1:        #111827;
+  --t2:        #6b7280;
+  --t3:        #9ca3af;
+  --up-text:   #3b6d11;
+  --up-bg:     #eaf3de;
+  --dn-text:   #a32d2d;
+  --dn-bg:     #fcebeb;
+  --neu-text:  #374151;
+  --neu-bg:    #f3f4f6;
+  --spark-col: #639922;
+  --radius:    14px;
+  --font:      'Inter', -apple-system, sans-serif;
 }
 
-/* ─── PAGE ───────────────────────────────────────────────────────────────── */
 html,body{
   width:100%;height:100%;
-  font-family:var(--sans);
-  background:var(--bg);
+  background:var(--page-bg);
+  font-family:var(--font);
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
 
-/* ─── PLACEHOLDER ────────────────────────────────────────────────────────── */
+/* ── PLACEHOLDER ── */
 #ph{
-  display:flex;flex-direction:column;align-items:center;gap:12px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
   color:var(--t3);font-size:12px;text-align:center;padding:32px;
+  max-width:300px;line-height:1.6;
 }
-#ph strong{font-size:13px;color:var(--t2);font-weight:600;}
+#ph .ph-icon{opacity:.4;margin-bottom:4px}
+#ph strong{font-size:13px;font-weight:500;color:var(--t2)}
 
-/* ─── CARD ───────────────────────────────────────────────────────────────── */
+/* ── CARD ── */
 #card{
   display:none;
-  width:calc(100% - 20px);max-width:500px;
-  background:var(--card);
+  width:calc(100% - 24px);
+  max-width:420px;
+  background:var(--card-bg);
   border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  border:1px solid var(--border);
-  padding:18px 20px 16px;
-  animation:up .35s ease both;
+  border:0.5px solid var(--border);
+  padding:20px 22px 18px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.06);
+  animation:fadeUp .3s ease both;
 }
-@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-/* ─── HEADER ─────────────────────────────────────────────────────────────── */
-.hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
-.hd-left{}
-.kpi-title{
-  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--t2);
+/* ── HEADER ── */
+.hd-label{
+  font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:2px;
 }
-.kpi-period{
-  font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--t3);margin-top:2px;
-}
+.hd-period{font-size:10px;color:var(--t3);font-weight:400}
 
-/* ─── HERO VALUE ─────────────────────────────────────────────────────────── */
-.hero{display:flex;align-items:center;gap:10px;margin:8px 0 14px}
+/* ── HERO ── */
+.hero{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin:10px 0 3px;
+}
 .hero-val{
-  font-family:var(--mono);font-size:34px;font-weight:600;
-  letter-spacing:-.02em;color:var(--t1);line-height:1;
+  font-size:36px;font-weight:500;color:var(--t1);
+  letter-spacing:-0.025em;line-height:1;
 }
-.dot{
-  width:9px;height:9px;border-radius:50%;flex-shrink:0;
-  background:var(--up);box-shadow:0 0 0 3px var(--up-bg);
+.var-pill{
+  display:flex;align-items:center;gap:4px;
+  font-size:11.5px;font-weight:500;
+  padding:4px 10px;border-radius:99px;
+  white-space:nowrap;margin-bottom:2px;
 }
-.dot.dn{background:var(--dn);box-shadow:0 0 0 3px var(--dn-bg);}
-.dot.neu{background:var(--t3);box-shadow:none;}
+.var-pill.up{background:var(--up-bg);color:var(--up-text)}
+.var-pill.dn{background:var(--dn-bg);color:var(--dn-text)}
+.var-pill.neu{background:var(--neu-bg);color:var(--neu-text)}
 
-/* ─── COMPARISONS ────────────────────────────────────────────────────────── */
-.comps{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
-.comp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.comp-lbl{font-size:10px;color:var(--t3);max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.badges{display:flex;gap:5px;flex-shrink:0;}
+.hero-sub{font-size:10px;color:var(--t3);margin-bottom:12px}
+
+/* ── DIVIDER ── */
+.div{height:0.5px;background:var(--border);margin:12px 0}
+
+/* ── COMPARISON ROWS ── */
+.comp{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.comp:last-child{margin-bottom:0}
+.comp-lbl{font-size:10.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.badges{display:flex;gap:4px;flex-shrink:0}
 .badge{
-  display:inline-flex;align-items:center;gap:2px;
-  font-size:10px;font-weight:600;font-family:var(--mono);
+  font-size:10px;font-weight:500;
   padding:2px 7px;border-radius:5px;white-space:nowrap;
 }
-.badge.up {background:var(--up-bg);color:var(--up);}
-.badge.dn {background:var(--dn-bg);color:var(--dn);}
-.badge.neu{background:var(--blue-bg);color:var(--blue);}
+.badge.up{background:var(--up-bg);color:var(--up-text)}
+.badge.dn{background:var(--dn-bg);color:var(--dn-text)}
+.badge.neu{background:var(--neu-bg);color:var(--neu-text)}
 
-/* ─── BUDGET BAR ─────────────────────────────────────────────────────────── */
-.budget{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
-.budget-lbl{font-size:10px;color:var(--t3);white-space:nowrap;}
-.track-wrap{flex:1;display:flex;flex-direction:column;gap:3px;}
-.track{height:5px;border-radius:99px;background:var(--border);overflow:hidden;}
-.fill{height:100%;border-radius:99px;min-width:3px;transition:width .5s ease;}
-.fill.over {background:var(--up);}
-.fill.under{background:var(--warn);}
-.track-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);font-family:var(--mono);}
-.budget-tag{
-  font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  padding:2px 7px;border-radius:4px;white-space:nowrap;
-}
-.budget-tag.over {background:var(--up-bg);color:var(--up);}
-.budget-tag.under{background:var(--warn-bg);color:var(--warn);}
-
-/* ─── SPARKLINE ──────────────────────────────────────────────────────────── */
-.spark-wrap{position:relative;}
+/* ── SPARKLINE ── */
+.spark-wrap{position:relative}
 #spark{width:100%;display:block;overflow:visible;}
-.legend{display:flex;gap:12px;justify-content:flex-end;margin-top:5px;}
-.leg{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3);}
-.leg-dot{width:7px;height:7px;border-radius:50%;}
+.spark-axis{
+  display:flex;justify-content:space-between;
+  font-size:9px;color:var(--t3);margin-top:2px;
+  font-variant-numeric:tabular-nums;
+}
 
-/* ─── TOOLTIP ────────────────────────────────────────────────────────────── */
+/* ── BUDGET ROW ── */
+.budget-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:12px;padding-top:12px;
+  border-top:0.5px solid var(--border);
+}
+.budget-lbl{font-size:10.5px;color:var(--t2)}
+.budget-tag{
+  font-size:10px;font-weight:500;
+  padding:3px 9px;border-radius:5px;white-space:nowrap;
+}
+.budget-tag.met{background:var(--up-bg);color:var(--up-text)}
+.budget-tag.miss{background:var(--dn-bg);color:var(--dn-text)}
+.budget-tag.neu{background:var(--neu-bg);color:var(--neu-text)}
+
+/* ── TOOLTIP ── */
 #tip{
-  position:fixed;background:var(--t1);color:#fff;
-  font-size:10px;font-family:var(--mono);
+  position:fixed;background:rgba(17,24,39,.9);color:#fff;
+  font-size:10px;font-family:var(--font);
   padding:4px 8px;border-radius:5px;
   pointer-events:none;white-space:nowrap;
   opacity:0;transition:opacity .12s;z-index:999;
+  backdrop-filter:blur(4px);
 }
 </style>
 </head>
 <body>
 
-<!-- Placeholder -->
 <div id="ph">
-  <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="40" height="40" rx="9" stroke="#cbd5e1" stroke-width="2"/>
-    <path d="M9 30 L15 21 L21 25 L29 14 L35 18" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="35" cy="18" r="2.5" fill="#cbd5e1"/>
-    <line x1="9" y1="34" x2="35" y2="34" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round"/>
+  <svg class="ph-icon" width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <rect x="2" y="2" width="36" height="36" rx="8" stroke="#9ca3af" stroke-width="1.5"/>
+    <path d="M8 28 L14 20 L20 23 L27 13 L32 16" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="32" cy="16" r="2" fill="#9ca3af"/>
   </svg>
   <strong>KPI Card</strong>
-  <div>Drop fields on the Marks card tiles:<br>
-    <b style="color:#64748b">KPI Value</b> · <b style="color:#64748b">Target/Budget</b> ·
-    <b style="color:#64748b">Comp 1 Delta</b> · <b style="color:#64748b">Comp 2 Delta</b>
-  </div>
-  <div style="margin-top:4px;font-size:10px;">
-    Use <b style="color:#64748b">Detail</b> tile for sparkline (time series rows)<br>
-    Use <b style="color:#64748b">Tooltip</b> for period label &amp; comparison labels
-  </div>
+  <span>Drop fields on the Marks card:<br>
+    <b style="color:#6b7280">Actual Value</b> · <b style="color:#6b7280">Previous Period</b><br>
+    <b style="color:#6b7280">Budget / Target</b> · <b style="color:#6b7280">Trend (Sparkline)</b>
+  </span>
+  <span style="margin-top:4px;font-size:10px;color:#9ca3af">
+    Add a date to the Detail tile<br>for the sparkline time axis
+  </span>
 </div>
 
-<!-- KPI Card -->
 <div id="card">
-  <div class="hd">
-    <div class="hd-left">
-      <div class="kpi-title" id="kpi-title">KPI Metric</div>
-      <div class="kpi-period" id="kpi-period"></div>
-    </div>
-  </div>
+  <div class="hd-label" id="hd-label">KPI Metric</div>
+  <div class="hd-period" id="hd-period"></div>
 
   <div class="hero">
     <div class="hero-val" id="hero-val">—</div>
-    <div class="dot neu" id="status-dot"></div>
+    <div class="var-pill neu" id="var-pill">—</div>
   </div>
+  <div class="hero-sub" id="hero-sub"></div>
 
-  <div class="comps" id="comps">
-    <div class="comp-row" id="c1-row" style="display:none">
-      <span class="comp-lbl" id="c1-lbl"></span>
+  <div class="div" id="div-comps" style="display:none"></div>
+  <div id="comps-wrap" style="display:none">
+    <div class="comp" id="comp-mom" style="display:none">
+      <span class="comp-lbl">vs Previous Period (MoM)</span>
       <div class="badges">
-        <span class="badge" id="c1-pct"></span>
-        <span class="badge" id="c1-abs"></span>
+        <span class="badge" id="mom-pct">—</span>
+        <span class="badge" id="mom-abs">—</span>
       </div>
     </div>
-    <div class="comp-row" id="c2-row" style="display:none">
-      <span class="comp-lbl" id="c2-lbl"></span>
+    <div class="comp" id="comp-yoy" style="display:none">
+      <span class="comp-lbl" id="yoy-label">vs Last Year</span>
       <div class="badges">
-        <span class="badge" id="c2-pct"></span>
-        <span class="badge" id="c2-abs"></span>
+        <span class="badge" id="yoy-pct">—</span>
+        <span class="badge" id="yoy-abs">—</span>
       </div>
     </div>
   </div>
 
-  <div class="budget" id="budget" style="display:none">
-    <span class="budget-lbl">vs. Budget</span>
-    <div class="track-wrap">
-      <div class="track"><div class="fill" id="fill"></div></div>
-      <div class="track-meta">
-        <span id="b-pct"></span>
-        <span id="b-target"></span>
-      </div>
-    </div>
-    <span class="budget-tag" id="b-tag"></span>
+  <div class="div" id="div-spark" style="display:none"></div>
+  <div class="spark-wrap" id="spark-wrap" style="display:none">
+    <svg id="spark" height="56"></svg>
+    <div class="spark-axis" id="spark-axis"></div>
   </div>
 
-  <div class="spark-wrap" id="spark-section" style="display:none">
-    <svg id="spark" height="60"></svg>
-    <div class="legend">
-      <div class="leg"><div class="leg-dot" style="background:#059669"></div>On/Over Target</div>
-      <div class="leg"><div class="leg-dot" style="background:#0284c7"></div>No Target Set</div>
-      <div class="leg"><div class="leg-dot" style="background:#d97706"></div>Under Target</div>
-    </div>
+  <div class="budget-row" id="budget-row" style="display:none">
+    <span class="budget-lbl" id="budget-lbl">vs Budget</span>
+    <span class="budget-tag" id="budget-tag">—</span>
   </div>
 </div>
 
@@ -219,312 +203,321 @@ html,body{
 'use strict';
 (function(){
 
-  /* ── helpers ─────────────────────────────────────────────────────── */
-  const $  = id => document.getElementById(id);
-  const NS = 'http://www.w3.org/2000/svg';
+/* ── refs ─────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
 
-  function svgEl(tag, attrs){
-    const el = document.createElementNS(NS, tag);
-    Object.entries(attrs||{}).forEach(([k,v])=>el.setAttribute(k,v));
-    return el;
+/* ── tooltip ──────────────────────────────────────── */
+const tip = $('tip');
+function showTip(e,t){tip.textContent=t;tip.style.opacity='1';moveTip(e)}
+function moveTip(e){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px'}
+function hideTip(){tip.style.opacity='0'}
+
+/* ── card show/hide ───────────────────────────────── */
+function showCard(){$('ph').style.display='none';$('card').style.display=''}
+function showPh()  {$('ph').style.display='';$('card').style.display='none'}
+
+/* ── number formatting ────────────────────────────── */
+function fmt(n,currency=true){
+  if(n===null||isNaN(n)) return '—';
+  const pfx = currency?'$':'';
+  const abs = Math.abs(n), sign = n<0?'-':'';
+  if(abs>=1e9)  return sign+pfx+(abs/1e9).toFixed(2)+'B';
+  if(abs>=1e6)  return sign+pfx+(abs/1e6).toFixed(2)+'M';
+  if(abs>=1000) return sign+pfx+abs.toLocaleString('en-US',{maximumFractionDigits:0});
+  return sign+pfx+abs.toFixed(abs<10?2:0);
+}
+function fmtPct(n){return n===null?'—':Math.abs(n).toFixed(1)+'%'}
+
+/* ── DataValue helpers ────────────────────────────── */
+function toNum(dv){
+  if(!dv) return null;
+  const n=parseFloat(dv.nativeValue!==undefined?dv.nativeValue:dv.value);
+  return isNaN(n)?null:n;
+}
+function toStr(dv){
+  if(!dv) return null;
+  const v=dv.formattedValue!==undefined?dv.formattedValue:String(dv.value);
+  return(v==='%null%'||v==='Null')?null:v;
+}
+function toFmt(dv){
+  if(!dv) return null;
+  const f=dv.formattedValue;
+  if(f&&f!=='%null%'&&f!=='Null') return f;
+  const n=toNum(dv); return n!==null?fmt(n):null;
+}
+
+/* ── prettify field name ──────────────────────────── */
+function pretty(s){
+  if(!s) return '';
+  return s.replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
+          .replace(/[_-]/g,' ')
+          .replace(/\b\w/g,c=>c.toUpperCase()).trim();
+}
+
+/* ── badge helper ─────────────────────────────────── */
+function setBadge(el,val,isAbs){
+  if(val===null){el.textContent='—';el.className='badge neu';return}
+  const up=val>=0;
+  el.className='badge '+(up?'up':'dn');
+  if(isAbs){
+    el.textContent=(up?'+':'')+fmt(val);
+  } else {
+    el.textContent=(up?'▲ ':'▼ ')+fmtPct(val);
+  }
+}
+
+/* ── SVG element factory ──────────────────────────── */
+function svgEl(tag,attrs){
+  const el=document.createElementNS(NS,tag);
+  for(const[k,v] of Object.entries(attrs||{})) el.setAttribute(k,v);
+  return el;
+}
+
+/* ── Tableau init ─────────────────────────────────── */
+let ws=null;
+window.onload=()=>{
+  tableau.extensions.initializeAsync().then(()=>{
+    ws=tableau.extensions.worksheetContent.worksheet;
+    ws.addEventListener(tableau.TableauEventType.SummaryDataChanged,refresh);
+    refresh();
+  },err=>{console.error('KPI Card:',err);showPh()});
+};
+
+/* ── main refresh ─────────────────────────────────── */
+async function refresh(){
+  try{
+    const[encMap,{cols,rows}]=await Promise.all([getEncodings(),getData()]);
+    render(encMap,cols,rows);
+  }catch(e){console.error('refresh:',e)}
+}
+
+/* ── encoding map ─────────────────────────────────── */
+async function getEncodings(){
+  const spec=await ws.getVisualSpecificationAsync();
+  const marks=spec.marksSpecifications[spec.activeMarksSpecificationIndex];
+  const m={};
+  for(const e of marks.encodings){
+    if(!m[e.id]) m[e.id]=[];
+    if(e.field?.name) m[e.id].push(e.field.name);
+  }
+  return m;
+}
+
+/* ── summary data ─────────────────────────────────── */
+async function getData(){
+  const rdr=await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
+  const pages=[];
+  for(let p=0;p<rdr.pageCount;p++) pages.push(await rdr.getPageAsync(p));
+  await rdr.releaseAsync();
+  if(!pages.length) return{cols:[],rows:[]};
+  const cols=pages[0].columns.map(c=>({name:c.fieldName,idx:c.index}));
+  const rows=pages.flatMap(pg=>pg.data);
+  return{cols,rows};
+}
+
+/* ── render ───────────────────────────────────────── */
+function render(enc,cols,rows){
+  if(!rows.length){showPh();return}
+
+  /* helpers */
+  function ci(name){const c=cols.find(c=>c.name===name);return c?c.idx:-1}
+  function cell(row,name){const i=ci(name);return i>=0?row[i]:null}
+  function firstOf(enc_id){
+    const f=(enc[enc_id]||[])[0];
+    if(!f||!rows.length) return{v:null,fmt:null,field:null};
+    const dv=cell(rows[0],f);
+    return{v:toNum(dv),fmt:toFmt(dv),field:f};
   }
 
-  function fmtNum(n){
-    if(n===null||n===undefined||isNaN(n)) return '—';
-    const abs=Math.abs(n), sign=n<0?'-':'';
-    if(abs>=1e9)  return sign+'$'+(abs/1e9).toFixed(2)+'B';
-    if(abs>=1e6)  return sign+'$'+(abs/1e6).toFixed(2)+'M';
-    if(abs>=1e3)  return sign+'$'+abs.toLocaleString('en-US',{maximumFractionDigits:0});
-    return sign+'$'+abs.toFixed(2);
-  }
+  /* ── values ── */
+  const actual   = firstOf('actual');
+  const previous = firstOf('previous');
+  const budget   = firstOf('budget');
 
-  function nativeNum(dv){
-    if(!dv) return null;
-    const n = parseFloat(dv.nativeValue !== undefined ? dv.nativeValue : dv.value);
-    return isNaN(n) ? null : n;
-  }
-
-  function fmtVal(dv){
-    if(!dv) return null;
-    const f = dv.formattedValue;
-    if(f && f!=='%null%' && f!=='Null') return f;
-    const n = nativeNum(dv);
-    return n!==null ? fmtNum(n) : null;
-  }
-
-  function strVal(dv){
-    if(!dv) return null;
-    const v = dv.formattedValue !== undefined ? dv.formattedValue : String(dv.value);
-    return (v==='%null%'||v==='Null') ? null : v;
-  }
-
-  /* ── tooltip ─────────────────────────────────────────────────────── */
-  const tip = $('tip');
-  function showTip(e,txt){ tip.textContent=txt; tip.style.opacity='1'; moveTip(e); }
-  function moveTip(e){ tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY-28)+'px'; }
-  function hideTip(){ tip.style.opacity='0'; }
-
-  /* ── show / hide card ─────────────────────────────────────────────── */
-  function showCard(){ $('ph').style.display='none'; $('card').style.display=''; }
-  function showPh()  { $('ph').style.display=''; $('card').style.display='none'; }
-
-  /* ── Tableau init ────────────────────────────────────────────────── */
-  let ws = null;
-
-  window.onload = function(){
-    tableau.extensions.initializeAsync().then(()=>{
-      ws = tableau.extensions.worksheetContent.worksheet;
-      ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, refresh);
-      refresh();
-    }, err => {
-      console.error('KPI Card init:', err);
-      showPh();
-    });
-  };
-
-  /* ── main refresh ─────────────────────────────────────────────────── */
-  async function refresh(){
-    try{
-      const [encMap, data] = await Promise.all([getEncodings(), getData()]);
-      render(encMap, data);
-    } catch(e){ console.error('KPI refresh:', e); }
-  }
-
-  /* ── build encoding map ───────────────────────────────────────────── */
-  async function getEncodings(){
-    const spec   = await ws.getVisualSpecificationAsync();
-    const marks  = spec.marksSpecifications[spec.activeMarksSpecificationIndex];
-    const map    = {};
-    for(const enc of marks.encodings){
-      if(!map[enc.id]) map[enc.id]=[];
-      if(enc.field?.name) map[enc.id].push(enc.field.name);
+  /* trend: collect all rows for the 'trend' encoding field */
+  const trendField=(enc['trend']||[])[0];
+  let trendVals=[], trendLabels=[];
+  if(trendField){
+    const fi=ci(trendField);
+    if(fi>=0){
+      /* also grab a date/string from the Detail or Tooltip tile for axis labels */
+      const detailField=(enc['detail']||enc['tooltip']||[])[0];
+      const di=detailField?ci(detailField):-1;
+      rows.forEach(r=>{
+        const n=toNum(r[fi]);
+        if(n!==null){
+          trendVals.push(n);
+          trendLabels.push(di>=0?toStr(r[di]):'');
+        }
+      });
     }
-    return map;
   }
 
-  /* ── fetch all summary rows ───────────────────────────────────────── */
-  async function getData(){
-    const reader = await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
-    const pages  = [];
-    for(let p=0;p<reader.pageCount;p++) pages.push(await reader.getPageAsync(p));
-    await reader.releaseAsync();
-    if(!pages.length) return {cols:[], rows:[]};
-    const cols = pages[0].columns.map(c=>({name:c.fieldName,idx:c.index}));
-    const rows = pages.flatMap(pg=>pg.data);
-    return {cols, rows};
+  if(actual.v===null&&trendVals.length===0){showPh();return}
+  showCard();
+
+  /* ── header ── */
+  $('hd-label').textContent=actual.field?pretty(actual.field):'KPI Metric';
+
+  /* period: try to get from Detail/Tooltip first row, else blank */
+  const detF=(enc['detail']||enc['tooltip']||[])[0];
+  const periodDv=detF&&rows.length?cell(rows[rows.length-1],detF):null;
+  $('hd-period').textContent=periodDv?toStr(periodDv)||'':'';
+
+  /* ── hero ── */
+  $('hero-val').textContent=actual.fmt||fmt(actual.v)||'—';
+
+  /* MoM delta */
+  let momDelta=null, momPct=null;
+  if(actual.v!==null&&previous.v!==null&&previous.v!==0){
+    momDelta=actual.v-previous.v;
+    momPct=(momDelta/Math.abs(previous.v))*100;
   }
 
-  /* ── render ───────────────────────────────────────────────────────── */
-  function render(enc, {cols, rows}){
-    if(!rows.length){ showPh(); return; }
-
-    function cidx(name){ const c=cols.find(c=>c.name===name); return c?c.idx:-1; }
-    function cell(row,name){ const i=cidx(name); return i>=0?row[i]:null; }
-    function firstNum(fieldArr){
-      if(!fieldArr?.length) return {v:null,fmt:null,field:null};
-      const dv = cell(rows[0], fieldArr[0]);
-      return {v:nativeNum(dv), fmt:fmtVal(dv), field:fieldArr[0]};
-    }
-
-    /* ── main value ── */
-    const valF  = enc['value'] || [];
-    const {v:mainV, fmt:mainFmt, field:mainField} = firstNum(valF);
-
-    /* ── target ── */
-    const {v:targV, fmt:targFmt} = firstNum(enc['target']||[]);
-
-    /* ── comparisons ── */
-    const {v:c1v, fmt:c1fmt, field:c1field} = firstNum(enc['comp1']||[]);
-    const {v:c2v, fmt:c2fmt, field:c2field} = firstNum(enc['comp2']||[]);
-
-    /* ── sparkline trend – use the Detail tile (id:"detail") or all rows of value field ── */
-    // Collect all rows of the KPI value field for sparkline
-    let trendVals = [];
-    if(valF.length){
-      const fi = cidx(valF[0]);
-      if(fi>=0) trendVals = rows.map(r=>nativeNum(r[fi])).filter(v=>v!==null);
-    }
-
-    /* ── period & comp labels from Tooltip tile ── */
-    // The Detail tile field names carry the period/label info
-    // We use the field names themselves as labels for comparisons
-    let periodLabel = '';
-    // Try to grab a date/string field from Detail encoding
-    const detailFields = enc['detail'] || enc['tooltip'] || [];
-    if(detailFields.length && rows.length){
-      const dv = cell(rows[0], detailFields[0]);
-      if(dv) periodLabel = strVal(dv) || '';
-    }
-
-    /* ── guard: need at least the main value ── */
-    if(mainV === null && trendVals.length === 0){ showPh(); return; }
-    showCard();
-
-    /* ── title: use the field name, prettified ── */
-    $('kpi-title').textContent = mainField ? prettify(mainField) : 'KPI Metric';
-    $('kpi-period').textContent = periodLabel;
-
-    /* ── hero value ── */
-    $('hero-val').textContent = mainFmt || fmtNum(mainV);
-
-    /* ── status dot ── */
-    const dot = $('status-dot');
-    if(mainV!==null && targV!==null){
-      dot.className = 'dot ' + (mainV>=targV?'':'dn');
-    } else {
-      dot.className = 'dot neu';
-    }
-
-    /* ── comparison rows ── */
-    renderComp('c1-row','c1-lbl','c1-pct','c1-abs', c1v, c1fmt, c1field, mainV);
-    renderComp('c2-row','c2-lbl','c2-pct','c2-abs', c2v, c2fmt, c2field, mainV);
-
-    const anyComp = c1v!==null || c2v!==null;
-    $('comps').style.display = anyComp ? '' : 'none';
-
-    /* ── budget bar ── */
-    renderBudget(mainV, targV, targFmt);
-
-    /* ── sparkline ── */
-    renderSpark(trendVals, targV);
+  /* hero pill */
+  const pill=$('var-pill');
+  if(momDelta!==null){
+    const up=momDelta>=0;
+    pill.className='var-pill '+(up?'up':'dn');
+    pill.textContent=(up?'▲ ':'▼ ')+(up?'+':'')+fmt(momDelta)+' vs prev';
+    $('hero-sub').textContent=previous.field?'vs '+pretty(previous.field):'vs previous period';
+  } else {
+    pill.style.display='none';
+    $('hero-sub').textContent='';
   }
 
-  /* ── comparison row ───────────────────────────────────────────────── */
-  function renderComp(rowId,lblId,pctId,absId, delta, deltaFmt, fieldName, mainV){
-    const row = $(rowId);
-    if(delta===null){ row.style.display='none'; return; }
-    row.style.display='';
+  /* ── MoM comparison row ── */
+  const showMom=momDelta!==null;
+  $('comp-mom').style.display=showMom?'':'none';
+  if(showMom){setBadge($('mom-pct'),momPct,false);setBadge($('mom-abs'),momDelta,true)}
 
-    $(lblId).textContent = fieldName ? prettify(fieldName) : 'Comparison';
-
-    const isUp = delta >= 0;
-    const cls  = isUp ? 'badge up' : 'badge dn';
-    const arr  = isUp ? '▲' : '▼';
-
-    // % change: delta / (mainV - delta) × 100
-    const prev = mainV !== null ? mainV - delta : null;
-    const pct  = (prev && prev!==0) ? Math.abs(delta/prev*100) : null;
-
-    $(pctId).className = cls;
-    $(pctId).textContent = arr + ' ' + (pct!==null ? pct.toFixed(1)+'%' : '—');
-
-    $(absId).className = cls;
-    $(absId).textContent = (isUp?'+':'') + (deltaFmt || fmtNum(delta));
-  }
-
-  /* ── budget bar ───────────────────────────────────────────────────── */
-  function renderBudget(mainV, targV, targFmt){
-    const sec = $('budget');
-    if(mainV===null || targV===null || targV===0){ sec.style.display='none'; return; }
-    sec.style.display='';
-
-    const pct     = mainV/targV*100;
-    const clipped = Math.min(Math.max(pct,0),100);
-    const isOver  = mainV >= targV;
-    const diffPct = Math.abs(pct-100).toFixed(1);
-
-    const fill = $('fill');
-    fill.style.width  = clipped+'%';
-    fill.className    = 'fill '+(isOver?'over':'under');
-
-    $('b-pct').textContent    = Math.round(pct)+'%';
-    $('b-target').textContent = targFmt || fmtNum(targV);
-
-    const tag = $('b-tag');
-    tag.className   = 'budget-tag '+(isOver?'over':'under');
-    tag.textContent = diffPct+'% '+(isOver?'ABOVE':'BELOW')+' BUDGET';
-  }
-
-  /* ── sparkline ────────────────────────────────────────────────────── */
-  function renderSpark(values, targV){
-    const sec = $('spark-section');
-    if(values.length < 2){ sec.style.display='none'; return; }
-    sec.style.display='';
-
-    const svg  = $('spark');
-    const W    = svg.clientWidth || 460;
-    const H    = 60;
-    const PAD  = {t:8,r:6,b:10,l:6};
-    const pw   = W-PAD.l-PAD.r;
-    const ph   = H-PAD.t-PAD.b;
-
-    const minV = Math.min(...values);
-    const maxV = Math.max(...values);
-    const rng  = maxV-minV||1;
-
-    const sx = i => PAD.l + (i/(values.length-1))*pw;
-    const sy = v => PAD.t + ph - ((v-minV)/rng)*ph;
-    const pts = values.map((v,i)=>[sx(i),sy(v)]);
-
-    // colour per point
-    function ptColor(v){
-      if(targV===null) return '#0284c7';
-      return v>=targV ? '#059669' : '#d97706';
+  /* ── YoY: if we have trend data spanning 12+ points, compute vs 12 periods ago ── */
+  let yoyDelta=null, yoyPct=null, showYoy=false;
+  if(trendVals.length>=13){
+    const curr=trendVals[trendVals.length-1];
+    const prev12=trendVals[trendVals.length-13];
+    if(prev12!==0){
+      yoyDelta=curr-prev12;
+      yoyPct=(yoyDelta/Math.abs(prev12))*100;
+      showYoy=true;
     }
+  }
+  $('comp-yoy').style.display=showYoy?'':'none';
+  if(showYoy){setBadge($('yoy-pct'),yoyPct,false);setBadge($('yoy-abs'),yoyDelta,true)}
 
-    // clear
-    while(svg.firstChild) svg.removeChild(svg.firstChild);
-    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const showComps=showMom||showYoy;
+  $('div-comps').style.display=showComps?'':'none';
+  $('comps-wrap').style.display=showComps?'':'none';
 
-    // defs – gradient
-    const defs = svgEl('defs');
-    const grad = svgEl('linearGradient',{id:'spGrad',x1:'0',y1:'0',x2:'0',y2:'1'});
-    const s1   = svgEl('stop',{'offset':'0%','stop-color':'#0284c7','stop-opacity':'0.12'});
-    const s2   = svgEl('stop',{'offset':'100%','stop-color':'#0284c7','stop-opacity':'0'});
-    grad.append(s1,s2); defs.append(grad); svg.append(defs);
+  /* ── sparkline ── */
+  const showSpark=trendVals.length>=2;
+  $('div-spark').style.display=showSpark?'':'none';
+  $('spark-wrap').style.display=showSpark?'':'none';
+  if(showSpark) renderSpark(trendVals,trendLabels,budget.v);
 
-    // area
-    const areaD = pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(' ')
-      + ` L${pts[pts.length-1][0]},${H-PAD.b} L${pts[0][0]},${H-PAD.b} Z`;
-    svg.append(svgEl('path',{d:areaD,fill:'url(#spGrad)'}));
+  /* ── budget ── */
+  const showBudget=actual.v!==null&&budget.v!==null;
+  $('budget-row').style.display=showBudget?'':'none';
+  if(showBudget){
+    const pct=((actual.v/budget.v)*100);
+    const diff=actual.v-budget.v;
+    const diffPct=Math.abs(pct-100).toFixed(1);
+    const met=actual.v>=budget.v;
+    const tag=$('budget-tag');
+    tag.className='budget-tag '+(met?'met':'miss');
+    tag.textContent=(met?'▲ '+diffPct+'% above · ':'▼ '+diffPct+'% below · ')+fmt(budget.v);
+    $('budget-lbl').textContent=budget.field?'vs '+pretty(budget.field):'vs Budget';
+  }
+}
 
-    // target line
-    if(targV!==null){
-      const ty = sy(Math.min(Math.max(targV,minV),maxV));
-      svg.append(svgEl('line',{
-        x1:PAD.l,y1:ty,x2:W-PAD.r,y2:ty,
-        stroke:'#94a3b8','stroke-width':'1','stroke-dasharray':'4,3'
-      }));
-    }
+/* ── sparkline renderer ───────────────────────────── */
+function renderSpark(vals,labels,targetV){
+  const svg=$('spark');
+  const W=svg.clientWidth||380;
+  const H=56;
+  const P={t:8,r:8,b:6,l:4};
+  const pw=W-P.l-P.r, ph=H-P.t-P.b;
 
-    // segments
-    for(let i=1;i<pts.length;i++){
-      svg.append(svgEl('line',{
-        x1:pts[i-1][0],y1:pts[i-1][1],x2:pts[i][0],y2:pts[i][1],
-        stroke:ptColor(values[i]),'stroke-width':'2','stroke-linecap':'round'
-      }));
-    }
+  const minV=Math.min(...vals), maxV=Math.max(...vals);
+  const rng=maxV-minV||1;
+  const sx=i=>P.l+(i/(vals.length-1))*pw;
+  const sy=v=>P.t+ph-((v-minV)/rng)*ph;
+  const pts=vals.map((v,i)=>[sx(i),sy(v)]);
 
-    // dots
-    pts.forEach(([x,y],i)=>{
-      const c = svgEl('circle',{cx:x,cy:y,r:'3.5',fill:ptColor(values[i]),stroke:'#fff','stroke-width':'1.5'});
-      c.style.cursor='pointer';
-      c.addEventListener('mouseenter', e=>showTip(e, fmtNum(values[i])));
-      c.addEventListener('mousemove',  moveTip);
-      c.addEventListener('mouseleave', hideTip);
-      svg.append(c);
-    });
+  /* clear */
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
 
-    // "LATEST" label on last point
-    const lp = pts[pts.length-1];
-    const lbl = svgEl('text',{
-      x:lp[0]-4, y:lp[1]-8,
-      'text-anchor':'end','font-size':'7.5',
-      'font-family':'IBM Plex Mono,monospace',
-      fill:'#94a3b8','letter-spacing':'0.06em'
-    });
-    lbl.textContent='LATEST';
-    svg.append(lbl);
+  /* defs: gradient fill + clip */
+  const defs=svgEl('defs');
+
+  const grad=svgEl('linearGradient',{id:'sg',x1:'0',y1:'0',x2:'0',y2:'1'});
+  const s1=svgEl('stop',{'offset':'0%','stop-color':'#639922','stop-opacity':'0.20'});
+  const s2=svgEl('stop',{'offset':'100%','stop-color':'#639922','stop-opacity':'0'});
+  grad.append(s1,s2);
+
+  defs.append(grad);
+  svg.append(defs);
+
+  /* area fill */
+  const aD=pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(' ')
+    +` L${pts[pts.length-1][0]},${H-P.b} L${pts[0][0]},${H-P.b} Z`;
+  svg.append(svgEl('path',{d:aD,fill:'url(#sg)'}));
+
+  /* optional target dashed line */
+  if(targetV!==null){
+    const clamped=Math.min(Math.max(targetV,minV),maxV);
+    const ty=sy(clamped);
+    svg.append(svgEl('line',{
+      x1:P.l,y1:ty,x2:W-P.r,y2:ty,
+      stroke:'#d1d5db','stroke-width':'1','stroke-dasharray':'4,3'
+    }));
   }
 
-  /* ── prettify field name ──────────────────────────────────────────── */
-  function prettify(name){
-    return name
-      .replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
-      .replace(/[_\-]/g,' ')
-      .replace(/\b\w/g,c=>c.toUpperCase())
-      .trim();
+  /* trend line */
+  const lineD=pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(' ');
+  svg.append(svgEl('path',{d:lineD,fill:'none',stroke:'#639922','stroke-width':'2','stroke-linecap':'round','stroke-linejoin':'round'}));
+
+  /* dots — coloured by vs target */
+  function dotColor(v){
+    if(targetV===null) return '#639922';
+    return v>=targetV?'#3b6d11':'#a32d2d';
   }
+
+  pts.forEach(([x,y],i)=>{
+    /* invisible wider hit area */
+    const hit=svgEl('circle',{cx:x,cy:y,r:'8',fill:'transparent'});
+    const label=labels[i]?labels[i]:fmt(vals[i]);
+    hit.addEventListener('mouseenter',e=>showTip(e,label+' · '+fmt(vals[i])));
+    hit.addEventListener('mousemove',moveTip);
+    hit.addEventListener('mouseleave',hideTip);
+
+    const c=svgEl('circle',{cx:x,cy:y,r:'3',fill:dotColor(vals[i]),stroke:'#fff','stroke-width':'1.5'});
+    svg.append(hit,c);
+  });
+
+  /* last value label */
+  const lp=pts[pts.length-1];
+  const lastLbl=svgEl('text',{
+    x:lp[0]-5,y:lp[1]-8,
+    'text-anchor':'end','font-size':'8.5',
+    'font-family':"'Inter',sans-serif",fill:'#9ca3af','letter-spacing':'0.04em'
+  });
+  lastLbl.textContent='LATEST';
+  svg.append(lastLbl);
+
+  /* axis labels: first and last */
+  const ax=$('spark-axis');
+  ax.innerHTML='';
+  if(labels.length>=2){
+    const first=document.createElement('span');
+    first.textContent=labels[0]||'';
+    const last=document.createElement('span');
+    last.textContent=labels[labels.length-1]||'';
+    ax.append(first,last);
+  }
+}
 
 })();
 </script>
