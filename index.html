@@ -5,188 +5,163 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>KPI Card</title>
 <script src="../../lib/tableau.extensions.1.latest.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --page-bg:   #f5f5f2;
-  --card-bg:   #ffffff;
-  --border:    rgba(0,0,0,0.08);
-  --t1:        #111827;
-  --t2:        #6b7280;
-  --t3:        #9ca3af;
-  --up-text:   #3b6d11;
-  --up-bg:     #eaf3de;
-  --dn-text:   #a32d2d;
-  --dn-bg:     #fcebeb;
-  --neu-text:  #374151;
-  --neu-bg:    #f3f4f6;
-  --spark-col: #639922;
-  --radius:    14px;
-  --font:      'Inter', -apple-system, sans-serif;
+  --page:#f5f5f2;
+  --card:#ffffff;
+  --bdr:rgba(0,0,0,0.07);
+  --t1:#111827;
+  --t2:#6b7280;
+  --t3:#9ca3af;
+  --up:#3b6d11;   --up-bg:#eaf3de;
+  --dn:#a32d2d;   --dn-bg:#fcebeb;
+  --neu:#374151;  --neu-bg:#f3f4f6;
+  --green:#639922;
+  --font:'Inter',-apple-system,sans-serif;
 }
 
 html,body{
-  width:100%;height:100%;
-  background:var(--page-bg);
+  width:100%;height:100%;margin:0;
+  background:var(--page);
   font-family:var(--font);
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
 
-/* ── PLACEHOLDER ── */
-#ph{
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  color:var(--t3);font-size:12px;text-align:center;padding:32px;
-  max-width:300px;line-height:1.6;
-}
-#ph .ph-icon{opacity:.4;margin-bottom:4px}
-#ph strong{font-size:13px;font-weight:500;color:var(--t2)}
+/* STATES */
+#state-ph,#state-err,#state-card{width:calc(100% - 24px);max-width:420px}
 
-/* ── CARD ── */
-#card{
+#state-ph,#state-err{
+  display:flex;flex-direction:column;align-items:center;
+  gap:10px;color:var(--t3);font-size:12px;
+  text-align:center;padding:32px;line-height:1.6;
+}
+#state-ph svg,#state-err svg{opacity:.4;margin-bottom:4px}
+#state-ph strong,#state-err strong{font-size:13px;font-weight:500;color:var(--t2)}
+#state-err{display:none}
+#err-msg{
+  font-size:10.5px;color:var(--dn);background:var(--dn-bg);
+  padding:8px 12px;border-radius:6px;
+  word-break:break-word;text-align:left;width:100%;
+  line-height:1.6;
+}
+
+/* CARD */
+#state-card{
   display:none;
-  width:calc(100% - 24px);
-  max-width:420px;
-  background:var(--card-bg);
-  border-radius:var(--radius);
-  border:0.5px solid var(--border);
+  background:var(--card);
+  border-radius:14px;
+  border:0.5px solid var(--bdr);
   padding:20px 22px 18px;
-  box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.06);
-  animation:fadeUp .3s ease both;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.07);
+  animation:up .3s ease both;
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes up{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-/* ── HEADER ── */
-.hd-label{
-  font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--t2);margin-bottom:2px;
-}
-.hd-period{font-size:10px;color:var(--t3);font-weight:400}
+/* HEADER */
+.hd-label{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t2);margin-bottom:2px}
+.hd-period{font-size:10px;color:var(--t3)}
 
-/* ── HERO ── */
-.hero{
-  display:flex;align-items:flex-end;justify-content:space-between;
-  margin:10px 0 3px;
-}
-.hero-val{
-  font-size:36px;font-weight:500;color:var(--t1);
-  letter-spacing:-0.025em;line-height:1;
-}
-.var-pill{
-  display:flex;align-items:center;gap:4px;
-  font-size:11.5px;font-weight:500;
-  padding:4px 10px;border-radius:99px;
-  white-space:nowrap;margin-bottom:2px;
-}
-.var-pill.up{background:var(--up-bg);color:var(--up-text)}
-.var-pill.dn{background:var(--dn-bg);color:var(--dn-text)}
-.var-pill.neu{background:var(--neu-bg);color:var(--neu-text)}
+/* HERO */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;margin:10px 0 2px}
+.hero-val{font-size:36px;font-weight:500;color:var(--t1);letter-spacing:-0.025em;line-height:1}
+.var-pill{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:4px 10px;border-radius:99px;white-space:nowrap;margin-bottom:2px}
+.var-pill.up{background:var(--up-bg);color:var(--up)}
+.var-pill.dn{background:var(--dn-bg);color:var(--dn)}
+.var-pill.neu{background:var(--neu-bg);color:var(--neu)}
+.hero-sub{font-size:10px;color:var(--t3);margin-bottom:12px;min-height:14px}
 
-.hero-sub{font-size:10px;color:var(--t3);margin-bottom:12px}
+/* DIVIDER */
+.hr{height:.5px;background:var(--bdr);margin:11px 0}
 
-/* ── DIVIDER ── */
-.div{height:0.5px;background:var(--border);margin:12px 0}
-
-/* ── COMPARISON ROWS ── */
+/* COMPARISON ROWS */
 .comp{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
 .comp:last-child{margin-bottom:0}
 .comp-lbl{font-size:10.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
 .badges{display:flex;gap:4px;flex-shrink:0}
-.badge{
-  font-size:10px;font-weight:500;
-  padding:2px 7px;border-radius:5px;white-space:nowrap;
-}
-.badge.up{background:var(--up-bg);color:var(--up-text)}
-.badge.dn{background:var(--dn-bg);color:var(--dn-text)}
-.badge.neu{background:var(--neu-bg);color:var(--neu-text)}
+.badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.badge.up{background:var(--up-bg);color:var(--up)}
+.badge.dn{background:var(--dn-bg);color:var(--dn)}
+.badge.neu{background:var(--neu-bg);color:var(--neu)}
 
-/* ── SPARKLINE ── */
+/* SPARKLINE */
 .spark-wrap{position:relative}
-#spark{width:100%;display:block;overflow:visible;}
-.spark-axis{
-  display:flex;justify-content:space-between;
-  font-size:9px;color:var(--t3);margin-top:2px;
-  font-variant-numeric:tabular-nums;
-}
+#spark{width:100%;display:block;overflow:visible}
+.spark-axis{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:2px}
 
-/* ── BUDGET ROW ── */
-.budget-row{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-top:12px;padding-top:12px;
-  border-top:0.5px solid var(--border);
-}
+/* BUDGET */
+.budget-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:.5px solid var(--bdr)}
 .budget-lbl{font-size:10.5px;color:var(--t2)}
-.budget-tag{
-  font-size:10px;font-weight:500;
-  padding:3px 9px;border-radius:5px;white-space:nowrap;
-}
-.budget-tag.met{background:var(--up-bg);color:var(--up-text)}
-.budget-tag.miss{background:var(--dn-bg);color:var(--dn-text)}
-.budget-tag.neu{background:var(--neu-bg);color:var(--neu-text)}
+.budget-tag{font-size:10px;font-weight:500;padding:3px 9px;border-radius:5px;white-space:nowrap}
+.budget-tag.up{background:var(--up-bg);color:var(--up)}
+.budget-tag.dn{background:var(--dn-bg);color:var(--dn)}
 
-/* ── TOOLTIP ── */
-#tip{
-  position:fixed;background:rgba(17,24,39,.9);color:#fff;
-  font-size:10px;font-family:var(--font);
-  padding:4px 8px;border-radius:5px;
-  pointer-events:none;white-space:nowrap;
-  opacity:0;transition:opacity .12s;z-index:999;
-  backdrop-filter:blur(4px);
-}
+/* TOOLTIP */
+#tip{position:fixed;background:rgba(17,24,39,.88);color:#fff;font-size:10px;font-family:var(--font);padding:4px 9px;border-radius:5px;pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .12s;z-index:9999}
 </style>
 </head>
 <body>
 
-<div id="ph">
-  <svg class="ph-icon" width="40" height="40" viewBox="0 0 40 40" fill="none">
+<!-- Placeholder -->
+<div id="state-ph">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
     <rect x="2" y="2" width="36" height="36" rx="8" stroke="#9ca3af" stroke-width="1.5"/>
     <path d="M8 28 L14 20 L20 23 L27 13 L32 16" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="32" cy="16" r="2" fill="#9ca3af"/>
   </svg>
   <strong>KPI Card</strong>
-  <span>Drop fields on the Marks card:<br>
-    <b style="color:#6b7280">Actual Value</b> · <b style="color:#6b7280">Previous Period</b><br>
-    <b style="color:#6b7280">Budget / Target</b> · <b style="color:#6b7280">Trend (Sparkline)</b>
+  <span>Drop fields on the Marks card tiles:<br>
+    <b style="color:#6b7280">Actual Value · Previous Period</b><br>
+    <b style="color:#6b7280">Budget/Target · Trend (Sparkline)</b>
   </span>
-  <span style="margin-top:4px;font-size:10px;color:#9ca3af">
-    Add a date to the Detail tile<br>for the sparkline time axis
-  </span>
+  <span style="font-size:10px;color:#9ca3af;margin-top:2px">Add a date to Detail for the sparkline axis</span>
 </div>
 
-<div id="card">
+<!-- Error -->
+<div id="state-err">
+  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+    <circle cx="18" cy="18" r="16" stroke="#f0959 5" stroke-width="1.5"/>
+    <path d="M18 10 L18 19" stroke="#f09595" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="18" cy="24" r="1.5" fill="#f09595"/>
+  </svg>
+  <strong>Something went wrong</strong>
+  <div id="err-msg"></div>
+</div>
+
+<!-- Card -->
+<div id="state-card">
   <div class="hd-label" id="hd-label">KPI Metric</div>
   <div class="hd-period" id="hd-period"></div>
 
   <div class="hero">
     <div class="hero-val" id="hero-val">—</div>
-    <div class="var-pill neu" id="var-pill">—</div>
+    <div class="var-pill neu" id="var-pill" style="display:none">—</div>
   </div>
   <div class="hero-sub" id="hero-sub"></div>
 
-  <div class="div" id="div-comps" style="display:none"></div>
-  <div id="comps-wrap" style="display:none">
-    <div class="comp" id="comp-mom" style="display:none">
-      <span class="comp-lbl">vs Previous Period (MoM)</span>
+  <div class="hr" id="hr-comps" style="display:none"></div>
+  <div id="comps-block" style="display:none">
+    <div class="comp" id="row-mom" style="display:none">
+      <span class="comp-lbl" id="mom-lbl">vs Previous Period</span>
       <div class="badges">
-        <span class="badge" id="mom-pct">—</span>
-        <span class="badge" id="mom-abs">—</span>
+        <span class="badge neu" id="mom-pct">—</span>
+        <span class="badge neu" id="mom-abs">—</span>
       </div>
     </div>
-    <div class="comp" id="comp-yoy" style="display:none">
-      <span class="comp-lbl" id="yoy-label">vs Last Year</span>
+    <div class="comp" id="row-yoy" style="display:none">
+      <span class="comp-lbl" id="yoy-lbl">vs Last Year</span>
       <div class="badges">
-        <span class="badge" id="yoy-pct">—</span>
-        <span class="badge" id="yoy-abs">—</span>
+        <span class="badge neu" id="yoy-pct">—</span>
+        <span class="badge neu" id="yoy-abs">—</span>
       </div>
     </div>
   </div>
 
-  <div class="div" id="div-spark" style="display:none"></div>
-  <div class="spark-wrap" id="spark-wrap" style="display:none">
+  <div class="hr" id="hr-spark" style="display:none"></div>
+  <div class="spark-wrap" id="spark-block" style="display:none">
     <svg id="spark" height="56"></svg>
     <div class="spark-axis" id="spark-axis"></div>
   </div>
@@ -201,323 +176,416 @@ html,body{
 
 <script>
 'use strict';
-(function(){
+(function () {
 
-/* ── refs ─────────────────────────────────────────── */
-const $ = id => document.getElementById(id);
-const NS = 'http://www.w3.org/2000/svg';
+  /* ── DOM refs ─────────────────────────────────── */
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
 
-/* ── tooltip ──────────────────────────────────────── */
-const tip = $('tip');
-function showTip(e,t){tip.textContent=t;tip.style.opacity='1';moveTip(e)}
-function moveTip(e){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-30)+'px'}
-function hideTip(){tip.style.opacity='0'}
-
-/* ── card show/hide ───────────────────────────────── */
-function showCard(){$('ph').style.display='none';$('card').style.display=''}
-function showPh()  {$('ph').style.display='';$('card').style.display='none'}
-
-/* ── number formatting ────────────────────────────── */
-function fmt(n,currency=true){
-  if(n===null||isNaN(n)) return '—';
-  const pfx = currency?'$':'';
-  const abs = Math.abs(n), sign = n<0?'-':'';
-  if(abs>=1e9)  return sign+pfx+(abs/1e9).toFixed(2)+'B';
-  if(abs>=1e6)  return sign+pfx+(abs/1e6).toFixed(2)+'M';
-  if(abs>=1000) return sign+pfx+abs.toLocaleString('en-US',{maximumFractionDigits:0});
-  return sign+pfx+abs.toFixed(abs<10?2:0);
-}
-function fmtPct(n){return n===null?'—':Math.abs(n).toFixed(1)+'%'}
-
-/* ── DataValue helpers ────────────────────────────── */
-function toNum(dv){
-  if(!dv) return null;
-  const n=parseFloat(dv.nativeValue!==undefined?dv.nativeValue:dv.value);
-  return isNaN(n)?null:n;
-}
-function toStr(dv){
-  if(!dv) return null;
-  const v=dv.formattedValue!==undefined?dv.formattedValue:String(dv.value);
-  return(v==='%null%'||v==='Null')?null:v;
-}
-function toFmt(dv){
-  if(!dv) return null;
-  const f=dv.formattedValue;
-  if(f&&f!=='%null%'&&f!=='Null') return f;
-  const n=toNum(dv); return n!==null?fmt(n):null;
-}
-
-/* ── prettify field name ──────────────────────────── */
-function pretty(s){
-  if(!s) return '';
-  return s.replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
-          .replace(/[_-]/g,' ')
-          .replace(/\b\w/g,c=>c.toUpperCase()).trim();
-}
-
-/* ── badge helper ─────────────────────────────────── */
-function setBadge(el,val,isAbs){
-  if(val===null){el.textContent='—';el.className='badge neu';return}
-  const up=val>=0;
-  el.className='badge '+(up?'up':'dn');
-  if(isAbs){
-    el.textContent=(up?'+':'')+fmt(val);
-  } else {
-    el.textContent=(up?'▲ ':'▼ ')+fmtPct(val);
-  }
-}
-
-/* ── SVG element factory ──────────────────────────── */
-function svgEl(tag,attrs){
-  const el=document.createElementNS(NS,tag);
-  for(const[k,v] of Object.entries(attrs||{})) el.setAttribute(k,v);
-  return el;
-}
-
-/* ── Tableau init ─────────────────────────────────── */
-let ws=null;
-window.onload=()=>{
-  tableau.extensions.initializeAsync().then(()=>{
-    ws=tableau.extensions.worksheetContent.worksheet;
-    ws.addEventListener(tableau.TableauEventType.SummaryDataChanged,refresh);
-    refresh();
-  },err=>{console.error('KPI Card:',err);showPh()});
-};
-
-/* ── main refresh ─────────────────────────────────── */
-async function refresh(){
-  try{
-    const[encMap,{cols,rows}]=await Promise.all([getEncodings(),getData()]);
-    render(encMap,cols,rows);
-  }catch(e){console.error('refresh:',e)}
-}
-
-/* ── encoding map ─────────────────────────────────── */
-async function getEncodings(){
-  const spec=await ws.getVisualSpecificationAsync();
-  const marks=spec.marksSpecifications[spec.activeMarksSpecificationIndex];
-  const m={};
-  for(const e of marks.encodings){
-    if(!m[e.id]) m[e.id]=[];
-    if(e.field?.name) m[e.id].push(e.field.name);
-  }
-  return m;
-}
-
-/* ── summary data ─────────────────────────────────── */
-async function getData(){
-  const rdr=await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
-  const pages=[];
-  for(let p=0;p<rdr.pageCount;p++) pages.push(await rdr.getPageAsync(p));
-  await rdr.releaseAsync();
-  if(!pages.length) return{cols:[],rows:[]};
-  const cols=pages[0].columns.map(c=>({name:c.fieldName,idx:c.index}));
-  const rows=pages.flatMap(pg=>pg.data);
-  return{cols,rows};
-}
-
-/* ── render ───────────────────────────────────────── */
-function render(enc,cols,rows){
-  if(!rows.length){showPh();return}
-
-  /* helpers */
-  function ci(name){const c=cols.find(c=>c.name===name);return c?c.idx:-1}
-  function cell(row,name){const i=ci(name);return i>=0?row[i]:null}
-  function firstOf(enc_id){
-    const f=(enc[enc_id]||[])[0];
-    if(!f||!rows.length) return{v:null,fmt:null,field:null};
-    const dv=cell(rows[0],f);
-    return{v:toNum(dv),fmt:toFmt(dv),field:f};
+  /* ── State helpers ────────────────────────────── */
+  function showState(name, errText) {
+    $('state-ph').style.display  = name === 'ph'   ? '' : 'none';
+    $('state-err').style.display = name === 'err'  ? '' : 'none';
+    $('state-card').style.display= name === 'card' ? '' : 'none';
+    if (name === 'err' && errText) $('err-msg').textContent = errText;
   }
 
-  /* ── values ── */
-  const actual   = firstOf('actual');
-  const previous = firstOf('previous');
-  const budget   = firstOf('budget');
+  /* ── Tooltip ──────────────────────────────────── */
+  var tip = $('tip');
+  function showTip(e, t) { tip.textContent = t; tip.style.opacity = '1'; moveTip(e); }
+  function moveTip(e)    { tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY - 30) + 'px'; }
+  function hideTip()     { tip.style.opacity = '0'; }
 
-  /* trend: collect all rows for the 'trend' encoding field */
-  const trendField=(enc['trend']||[])[0];
-  let trendVals=[], trendLabels=[];
-  if(trendField){
-    const fi=ci(trendField);
-    if(fi>=0){
-      /* also grab a date/string from the Detail or Tooltip tile for axis labels */
-      const detailField=(enc['detail']||enc['tooltip']||[])[0];
-      const di=detailField?ci(detailField):-1;
-      rows.forEach(r=>{
-        const n=toNum(r[fi]);
-        if(n!==null){
-          trendVals.push(n);
-          trendLabels.push(di>=0?toStr(r[di]):'');
-        }
+  /* ── Number formatting ────────────────────────── */
+  function fmtN(n, cur) {
+    if (n === null || isNaN(n)) return '—';
+    cur = (cur === undefined) ? true : cur;
+    var p = cur ? '$' : '';
+    var abs = Math.abs(n), s = n < 0 ? '-' : '';
+    if (abs >= 1e9)  return s + p + (abs / 1e9).toFixed(2) + 'B';
+    if (abs >= 1e6)  return s + p + (abs / 1e6).toFixed(2) + 'M';
+    if (abs >= 1000) return s + p + Math.round(abs).toLocaleString('en-US');
+    return s + p + abs.toFixed(abs < 10 ? 2 : 0);
+  }
+  function fmtPct(n) { return n === null ? '—' : Math.abs(n).toFixed(1) + '%'; }
+
+  /* ── DataValue to number ──────────────────────── */
+  function dvNum(dv) {
+    if (!dv) return null;
+    /* nativeValue is preferred — it's the raw number */
+    var raw = (dv.nativeValue !== undefined && dv.nativeValue !== null)
+              ? dv.nativeValue : dv.value;
+    var n = parseFloat(raw);
+    return isNaN(n) ? null : n;
+  }
+
+  /* ── DataValue to formatted string ───────────── */
+  function dvFmt(dv) {
+    if (!dv) return null;
+    var f = dv.formattedValue;
+    if (f && f !== '%null%' && f !== 'Null' && f !== 'null') return f;
+    var n = dvNum(dv);
+    return n !== null ? fmtN(n) : null;
+  }
+
+  /* ── DataValue to plain string ────────────────── */
+  function dvStr(dv) {
+    if (!dv) return null;
+    var v = (dv.formattedValue !== undefined) ? dv.formattedValue : String(dv.value);
+    return (v === '%null%' || v === 'Null' || v === 'null') ? null : v;
+  }
+
+  /* ── Clean field name for display ────────────── */
+  function pretty(s) {
+    if (!s) return '';
+    return s.replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i, '$2')
+            .replace(/[_-]/g, ' ')
+            .replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+            .trim();
+  }
+
+  /* ── Set a badge element ──────────────────────── */
+  function setBadge(id, val, isAbs) {
+    var el = $(id);
+    if (val === null || val === undefined) {
+      el.textContent = '—'; el.className = 'badge neu'; return;
+    }
+    var up = val >= 0;
+    el.className = 'badge ' + (up ? 'up' : 'dn');
+    el.textContent = isAbs
+      ? (up ? '+' : '') + fmtN(val)
+      : (up ? '▲ ' : '▼ ') + fmtPct(val);
+  }
+
+  /* ── SVG element helper ───────────────────────── */
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS(NS, tag);
+    Object.keys(attrs || {}).forEach(function(k){ el.setAttribute(k, attrs[k]); });
+    return el;
+  }
+
+  /* ── Show/hide helpers ────────────────────────── */
+  function show(id){ $(id).style.display = ''; }
+  function hide(id){ $(id).style.display = 'none'; }
+
+  /* =====================================================
+     TABLEAU INIT
+  ===================================================== */
+  var ws = null;
+
+  window.onload = function () {
+    tableau.extensions.initializeAsync().then(function () {
+      ws = tableau.extensions.worksheetContent.worksheet;
+      ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, refresh);
+      refresh();
+    }, function (err) {
+      showState('err', 'Init failed: ' + String(err));
+    });
+  };
+
+  /* =====================================================
+     REFRESH
+  ===================================================== */
+  function refresh() {
+    Promise.all([getEncodings(), getData()])
+      .then(function(results){ render(results[0], results[1].cols, results[1].rows); })
+      .catch(function(err){ showState('err', 'Data error: ' + String(err)); });
+  }
+
+  /* =====================================================
+     GET ENCODING MAP
+     Returns { encId: [fieldName, ...] }
+  ===================================================== */
+  function getEncodings() {
+    return ws.getVisualSpecificationAsync().then(function(spec) {
+      var marks = spec.marksSpecifications[spec.activeMarksSpecificationIndex];
+      var map = {};
+      marks.encodings.forEach(function(e) {
+        if (!map[e.id]) map[e.id] = [];
+        if (e.field && e.field.name) map[e.id].push(e.field.name);
       });
+      return map;
+    });
+  }
+
+  /* =====================================================
+     GET SUMMARY DATA
+     Reads all pages. Returns { cols, rows }.
+     cols = [{name, idx}]
+     rows = array of DataValue arrays
+  ===================================================== */
+  function getData() {
+    return ws.getSummaryDataReaderAsync(undefined, { ignoreSelection: true })
+      .then(function(reader) {
+        var pages = [];
+        var chain = Promise.resolve();
+        for (var p = 0; p < reader.pageCount; p++) {
+          (function(pageNum){
+            chain = chain.then(function(){
+              return reader.getPageAsync(pageNum).then(function(pg){ pages.push(pg); });
+            });
+          })(p);
+        }
+        return chain.then(function(){
+          return reader.releaseAsync().then(function(){
+            if (!pages.length) return { cols: [], rows: [] };
+            var cols = pages[0].columns.map(function(c){ return { name: c.fieldName, idx: c.index }; });
+            var rows = [];
+            pages.forEach(function(pg){ pg.data.forEach(function(r){ rows.push(r); }); });
+            return { cols: cols, rows: rows };
+          });
+        });
+      });
+  }
+
+  /* =====================================================
+     RENDER
+  ===================================================== */
+  function render(enc, cols, rows) {
+
+    /* ── column lookup ── */
+    function ci(name) {
+      for (var i = 0; i < cols.length; i++) {
+        if (cols[i].name === name) return cols[i].idx;
+      }
+      return -1;
+    }
+    function cell(row, name) { var i = ci(name); return i >= 0 ? row[i] : null; }
+
+    /* ── first mapped field for an encoding ── */
+    function firstField(encId) {
+      var fields = enc[encId] || [];
+      return fields.length ? fields[0] : null;
+    }
+
+    /* ── first value for an encoding ── */
+    function firstVal(encId) {
+      var f = firstField(encId);
+      if (!f || !rows.length) return { v: null, fmt: null, field: null };
+      var dv = cell(rows[0], f);
+      return { v: dvNum(dv), fmt: dvFmt(dv), field: f };
+    }
+
+    /* ── extract values ── */
+    var actual   = firstVal('actual');
+    var previous = firstVal('previous');
+    var budget   = firstVal('budget');
+
+    /* trend: all rows of 'trend' field */
+    var trendField = firstField('trend');
+    var trendVals = [], trendLabels = [];
+    if (trendField) {
+      var tfi = ci(trendField);
+      /* try Detail then Tooltip for axis labels */
+      var dateField = (enc['detail'] || enc['tooltip'] || [])[0] || null;
+      var dfi = dateField ? ci(dateField) : -1;
+      if (tfi >= 0) {
+        rows.forEach(function(r) {
+          var n = dvNum(r[tfi]);
+          if (n !== null) {
+            trendVals.push(n);
+            trendLabels.push(dfi >= 0 ? (dvStr(r[dfi]) || '') : '');
+          }
+        });
+      }
+    }
+
+    /* guard: need at least actual value */
+    if (actual.v === null && trendVals.length === 0) {
+      showState('ph');
+      return;
+    }
+
+    showState('card');
+
+    /* ── HEADER ── */
+    $('hd-label').textContent = actual.field ? pretty(actual.field) : 'KPI Metric';
+
+    /* period label: last row of dateField, or last trendLabel */
+    var periodLabel = '';
+    if (trendLabels.length) periodLabel = trendLabels[trendLabels.length - 1];
+    $('hd-period').textContent = periodLabel;
+
+    /* ── HERO VALUE ── */
+    $('hero-val').textContent = actual.fmt || fmtN(actual.v) || '—';
+
+    /* ── MoM VARIANCE ── */
+    var momDelta = null, momPct = null;
+    if (actual.v !== null && previous.v !== null && previous.v !== 0) {
+      momDelta = actual.v - previous.v;
+      momPct   = (momDelta / Math.abs(previous.v)) * 100;
+    }
+
+    /* hero pill */
+    var pill = $('var-pill');
+    if (momDelta !== null) {
+      var up = momDelta >= 0;
+      pill.className = 'var-pill ' + (up ? 'up' : 'dn');
+      pill.textContent = (up ? '▲ +' : '▼ ') + fmtN(momDelta) + ' vs prev';
+      pill.style.display = '';
+      $('hero-sub').textContent = previous.field
+        ? 'vs ' + pretty(previous.field)
+        : 'vs previous period';
+    } else {
+      pill.style.display = 'none';
+      $('hero-sub').textContent = '';
+    }
+
+    /* ── COMPARISON ROWS ── */
+    var showMom = momDelta !== null;
+    $(  'row-mom').style.display = showMom ? '' : 'none';
+    if (showMom) {
+      $('mom-lbl').textContent = previous.field
+        ? 'vs ' + pretty(previous.field) + ' (MoM)'
+        : 'vs Previous Period (MoM)';
+      setBadge('mom-pct', momPct,   false);
+      setBadge('mom-abs', momDelta, true);
+    }
+
+    /* YoY: if trend has 13+ data points, compare latest vs 12 back */
+    var showYoy = false, yoyDelta = null, yoyPct = null;
+    if (trendVals.length >= 13) {
+      var cur12  = trendVals[trendVals.length - 1];
+      var prev12 = trendVals[trendVals.length - 13];
+      if (prev12 !== 0) {
+        yoyDelta = cur12 - prev12;
+        yoyPct   = (yoyDelta / Math.abs(prev12)) * 100;
+        showYoy  = true;
+      }
+    }
+    $('row-yoy').style.display = showYoy ? '' : 'none';
+    if (showYoy) {
+      setBadge('yoy-pct', yoyPct,   false);
+      setBadge('yoy-abs', yoyDelta, true);
+    }
+
+    var anyComp = showMom || showYoy;
+    $('hr-comps').style.display    = anyComp ? '' : 'none';
+    $('comps-block').style.display = anyComp ? '' : 'none';
+
+    /* ── SPARKLINE ── */
+    var showSpark = trendVals.length >= 2;
+    $('hr-spark').style.display    = showSpark ? '' : 'none';
+    $('spark-block').style.display = showSpark ? '' : 'none';
+    if (showSpark) renderSpark(trendVals, trendLabels, budget.v);
+
+    /* ── BUDGET ROW ── */
+    var showBudget = actual.v !== null && budget.v !== null && budget.v !== 0;
+    $('budget-row').style.display = showBudget ? '' : 'none';
+    if (showBudget) {
+      var pct     = (actual.v / budget.v) * 100;
+      var diffPct = Math.abs(pct - 100).toFixed(1);
+      var met     = actual.v >= budget.v;
+      var tag     = $('budget-tag');
+      tag.className   = 'budget-tag ' + (met ? 'up' : 'dn');
+      tag.textContent = (met ? '▲ ' : '▼ ') + diffPct + '% ' + (met ? 'above' : 'below')
+                      + ' · ' + (budget.fmt || fmtN(budget.v));
+      $('budget-lbl').textContent = budget.field
+        ? 'vs ' + pretty(budget.field)
+        : 'vs Budget';
     }
   }
 
-  if(actual.v===null&&trendVals.length===0){showPh();return}
-  showCard();
+  /* =====================================================
+     SPARKLINE
+  ===================================================== */
+  function renderSpark(vals, labels, targetV) {
+    var svg = $('spark');
+    var W   = svg.clientWidth || 376;
+    var H   = 56;
+    var P   = { t: 8, r: 8, b: 6, l: 4 };
+    var pw  = W - P.l - P.r;
+    var ph  = H - P.t - P.b;
 
-  /* ── header ── */
-  $('hd-label').textContent=actual.field?pretty(actual.field):'KPI Metric';
+    var minV = Math.min.apply(null, vals);
+    var maxV = Math.max.apply(null, vals);
+    var rng  = maxV - minV || 1;
 
-  /* period: try to get from Detail/Tooltip first row, else blank */
-  const detF=(enc['detail']||enc['tooltip']||[])[0];
-  const periodDv=detF&&rows.length?cell(rows[rows.length-1],detF):null;
-  $('hd-period').textContent=periodDv?toStr(periodDv)||'':'';
+    function sx(i) { return P.l + (i / (vals.length - 1)) * pw; }
+    function sy(v) { return P.t + ph - ((v - minV) / rng) * ph; }
 
-  /* ── hero ── */
-  $('hero-val').textContent=actual.fmt||fmt(actual.v)||'—';
+    var pts = vals.map(function(v, i){ return [sx(i), sy(v)]; });
 
-  /* MoM delta */
-  let momDelta=null, momPct=null;
-  if(actual.v!==null&&previous.v!==null&&previous.v!==0){
-    momDelta=actual.v-previous.v;
-    momPct=(momDelta/Math.abs(previous.v))*100;
-  }
+    /* clear */
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
 
-  /* hero pill */
-  const pill=$('var-pill');
-  if(momDelta!==null){
-    const up=momDelta>=0;
-    pill.className='var-pill '+(up?'up':'dn');
-    pill.textContent=(up?'▲ ':'▼ ')+(up?'+':'')+fmt(momDelta)+' vs prev';
-    $('hero-sub').textContent=previous.field?'vs '+pretty(previous.field):'vs previous period';
-  } else {
-    pill.style.display='none';
-    $('hero-sub').textContent='';
-  }
+    /* defs: gradient */
+    var defs = svgEl('defs');
+    var grad = svgEl('linearGradient', { id: 'sg', x1: '0', y1: '0', x2: '0', y2: '1' });
+    grad.appendChild(svgEl('stop', { offset: '0%',   'stop-color': '#639922', 'stop-opacity': '0.22' }));
+    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#639922', 'stop-opacity': '0.01' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
 
-  /* ── MoM comparison row ── */
-  const showMom=momDelta!==null;
-  $('comp-mom').style.display=showMom?'':'none';
-  if(showMom){setBadge($('mom-pct'),momPct,false);setBadge($('mom-abs'),momDelta,true)}
+    /* area fill */
+    var aD = pts.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]; }).join(' ')
+           + ' L' + pts[pts.length-1][0] + ',' + (H - P.b)
+           + ' L' + pts[0][0] + ',' + (H - P.b) + ' Z';
+    svg.appendChild(svgEl('path', { d: aD, fill: 'url(#sg)' }));
 
-  /* ── YoY: if we have trend data spanning 12+ points, compute vs 12 periods ago ── */
-  let yoyDelta=null, yoyPct=null, showYoy=false;
-  if(trendVals.length>=13){
-    const curr=trendVals[trendVals.length-1];
-    const prev12=trendVals[trendVals.length-13];
-    if(prev12!==0){
-      yoyDelta=curr-prev12;
-      yoyPct=(yoyDelta/Math.abs(prev12))*100;
-      showYoy=true;
+    /* target dashed line */
+    if (targetV !== null) {
+      var clamped = Math.min(Math.max(targetV, minV), maxV);
+      var ty = sy(clamped);
+      svg.appendChild(svgEl('line', {
+        x1: P.l, y1: ty, x2: W - P.r, y2: ty,
+        stroke: '#d1d5db', 'stroke-width': '1', 'stroke-dasharray': '4,3'
+      }));
     }
-  }
-  $('comp-yoy').style.display=showYoy?'':'none';
-  if(showYoy){setBadge($('yoy-pct'),yoyPct,false);setBadge($('yoy-abs'),yoyDelta,true)}
 
-  const showComps=showMom||showYoy;
-  $('div-comps').style.display=showComps?'':'none';
-  $('comps-wrap').style.display=showComps?'':'none';
-
-  /* ── sparkline ── */
-  const showSpark=trendVals.length>=2;
-  $('div-spark').style.display=showSpark?'':'none';
-  $('spark-wrap').style.display=showSpark?'':'none';
-  if(showSpark) renderSpark(trendVals,trendLabels,budget.v);
-
-  /* ── budget ── */
-  const showBudget=actual.v!==null&&budget.v!==null;
-  $('budget-row').style.display=showBudget?'':'none';
-  if(showBudget){
-    const pct=((actual.v/budget.v)*100);
-    const diff=actual.v-budget.v;
-    const diffPct=Math.abs(pct-100).toFixed(1);
-    const met=actual.v>=budget.v;
-    const tag=$('budget-tag');
-    tag.className='budget-tag '+(met?'met':'miss');
-    tag.textContent=(met?'▲ '+diffPct+'% above · ':'▼ '+diffPct+'% below · ')+fmt(budget.v);
-    $('budget-lbl').textContent=budget.field?'vs '+pretty(budget.field):'vs Budget';
-  }
-}
-
-/* ── sparkline renderer ───────────────────────────── */
-function renderSpark(vals,labels,targetV){
-  const svg=$('spark');
-  const W=svg.clientWidth||380;
-  const H=56;
-  const P={t:8,r:8,b:6,l:4};
-  const pw=W-P.l-P.r, ph=H-P.t-P.b;
-
-  const minV=Math.min(...vals), maxV=Math.max(...vals);
-  const rng=maxV-minV||1;
-  const sx=i=>P.l+(i/(vals.length-1))*pw;
-  const sy=v=>P.t+ph-((v-minV)/rng)*ph;
-  const pts=vals.map((v,i)=>[sx(i),sy(v)]);
-
-  /* clear */
-  while(svg.firstChild) svg.removeChild(svg.firstChild);
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-
-  /* defs: gradient fill + clip */
-  const defs=svgEl('defs');
-
-  const grad=svgEl('linearGradient',{id:'sg',x1:'0',y1:'0',x2:'0',y2:'1'});
-  const s1=svgEl('stop',{'offset':'0%','stop-color':'#639922','stop-opacity':'0.20'});
-  const s2=svgEl('stop',{'offset':'100%','stop-color':'#639922','stop-opacity':'0'});
-  grad.append(s1,s2);
-
-  defs.append(grad);
-  svg.append(defs);
-
-  /* area fill */
-  const aD=pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(' ')
-    +` L${pts[pts.length-1][0]},${H-P.b} L${pts[0][0]},${H-P.b} Z`;
-  svg.append(svgEl('path',{d:aD,fill:'url(#sg)'}));
-
-  /* optional target dashed line */
-  if(targetV!==null){
-    const clamped=Math.min(Math.max(targetV,minV),maxV);
-    const ty=sy(clamped);
-    svg.append(svgEl('line',{
-      x1:P.l,y1:ty,x2:W-P.r,y2:ty,
-      stroke:'#d1d5db','stroke-width':'1','stroke-dasharray':'4,3'
+    /* main line */
+    var lineD = pts.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]; }).join(' ');
+    svg.appendChild(svgEl('path', {
+      d: lineD, fill: 'none',
+      stroke: '#639922', 'stroke-width': '2',
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round'
     }));
+
+    /* dots coloured vs target */
+    function dotColor(v) {
+      if (targetV === null) return '#639922';
+      return v >= targetV ? '#3b6d11' : '#a32d2d';
+    }
+
+    pts.forEach(function(pt, i) {
+      var hit = svgEl('circle', { cx: pt[0], cy: pt[1], r: '9', fill: 'transparent' });
+      var lbl = (labels[i] ? labels[i] + ' · ' : '') + fmtN(vals[i]);
+      hit.addEventListener('mouseenter', function(e){ showTip(e, lbl); });
+      hit.addEventListener('mousemove',  moveTip);
+      hit.addEventListener('mouseleave', hideTip);
+
+      var dot = svgEl('circle', {
+        cx: pt[0], cy: pt[1], r: '3',
+        fill: dotColor(vals[i]), stroke: '#fff', 'stroke-width': '1.5'
+      });
+      svg.appendChild(hit);
+      svg.appendChild(dot);
+    });
+
+    /* "LATEST" label on last dot */
+    var lp = pts[pts.length - 1];
+    var ltxt = svgEl('text', {
+      x: lp[0] - 5, y: lp[1] - 8,
+      'text-anchor': 'end', 'font-size': '8',
+      'font-family': "'Inter',sans-serif",
+      fill: '#9ca3af', 'letter-spacing': '0.05em'
+    });
+    ltxt.textContent = 'LATEST';
+    svg.appendChild(ltxt);
+
+    /* axis: first and last label */
+    var ax = $('spark-axis');
+    ax.innerHTML = '';
+    if (labels.length >= 2) {
+      var s1 = document.createElement('span');
+      s1.textContent = labels[0] || '';
+      var s2 = document.createElement('span');
+      s2.textContent = labels[labels.length - 1] || '';
+      ax.appendChild(s1);
+      ax.appendChild(s2);
+    }
   }
-
-  /* trend line */
-  const lineD=pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(' ');
-  svg.append(svgEl('path',{d:lineD,fill:'none',stroke:'#639922','stroke-width':'2','stroke-linecap':'round','stroke-linejoin':'round'}));
-
-  /* dots — coloured by vs target */
-  function dotColor(v){
-    if(targetV===null) return '#639922';
-    return v>=targetV?'#3b6d11':'#a32d2d';
-  }
-
-  pts.forEach(([x,y],i)=>{
-    /* invisible wider hit area */
-    const hit=svgEl('circle',{cx:x,cy:y,r:'8',fill:'transparent'});
-    const label=labels[i]?labels[i]:fmt(vals[i]);
-    hit.addEventListener('mouseenter',e=>showTip(e,label+' · '+fmt(vals[i])));
-    hit.addEventListener('mousemove',moveTip);
-    hit.addEventListener('mouseleave',hideTip);
-
-    const c=svgEl('circle',{cx:x,cy:y,r:'3',fill:dotColor(vals[i]),stroke:'#fff','stroke-width':'1.5'});
-    svg.append(hit,c);
-  });
-
-  /* last value label */
-  const lp=pts[pts.length-1];
-  const lastLbl=svgEl('text',{
-    x:lp[0]-5,y:lp[1]-8,
-    'text-anchor':'end','font-size':'8.5',
-    'font-family':"'Inter',sans-serif",fill:'#9ca3af','letter-spacing':'0.04em'
-  });
-  lastLbl.textContent='LATEST';
-  svg.append(lastLbl);
-
-  /* axis labels: first and last */
-  const ax=$('spark-axis');
-  ax.innerHTML='';
-  if(labels.length>=2){
-    const first=document.createElement('span');
-    first.textContent=labels[0]||'';
-    const last=document.createElement('span');
-    last.textContent=labels[labels.length-1]||'';
-    ax.append(first,last);
-  }
-}
 
 })();
 </script>
