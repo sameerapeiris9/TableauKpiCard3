@@ -2,37 +2,259 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>KPI Card – Debug</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KPI Card</title>
 <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  body { font-family: monospace; font-size: 12px; background: #f5f5f2; padding: 16px; margin: 0; }
-  h3   { font-size: 13px; margin: 12px 0 6px; color: #333; }
-  pre  { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px; white-space: pre-wrap; word-break: break-all; max-height: 260px; overflow-y: auto; }
-  .ok  { color: #27500a; background: #eaf3de; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; }
-  .err { color: #a32d2d; background: #fcebeb; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --page:    #f0f0ec;
+  --card:    #ffffff;
+  --bdr:     rgba(0,0,0,0.07);
+  --t1:      #111111;
+  --t2:      #666666;
+  --t3:      #aaaaaa;
+  --surface: #f5f5f2;
+  --track:   #e4e4df;
+
+  --g-bg:#eaf3de; --g-hi:#1a3d08; --g-mid:#3b6d11; --g-bar:#639922;
+  --r-bg:#fcebeb; --r-hi:#5c1515; --r-mid:#a32d2d; --r-bar:#e24b4a;
+  --a-bg:#faeeda; --a-hi:#633806; --a-mid:#854f0b; --a-bar:#ef9f27;
+}
+
+html,body{
+  width:100%;height:100%;
+  background:var(--page);
+  font-family:'Inter',-apple-system,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+#app{ width:calc(100% - 20px); max-width:400px; }
+
+/* ── CARD ── */
+#card{
+  background:var(--card);
+  border-radius:16px;
+  border:0.5px solid var(--bdr);
+  padding:22px 22px 20px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04),0 6px 24px rgba(0,0,0,0.07);
+  animation:rise .35s cubic-bezier(.22,.68,0,1.15) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+
+/* ── HEADER ── */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.metric-name{
+  font-size:10.5px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--t2);margin-bottom:3px;
+}
+.metric-period{font-size:11px;color:var(--t3)}
+.status-pill{
+  font-size:9.5px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;padding:4px 11px;border-radius:99px;
+  white-space:nowrap;flex-shrink:0;margin-top:2px;
+}
+
+/* ── HERO ── */
+.hero-val{
+  font-size:42px;font-weight:600;color:var(--t1);
+  letter-spacing:-0.03em;line-height:1;margin-bottom:10px;
+}
+.hero-sub{display:flex;align-items:center;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.delta-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11.5px;font-weight:500;padding:4px 11px;
+  border-radius:8px;white-space:nowrap;flex-shrink:0;
+}
+.vs-text{font-size:11px;color:var(--t3)}
+
+/* ── DIVIDER ── */
+.div{height:0.5px;background:var(--bdr);margin-bottom:18px}
+
+/* ── INSIGHT TILES ── */
+.insight-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ins-tile{border-radius:12px;padding:15px 16px}
+.ins-label{
+  display:flex;align-items:center;gap:5px;
+  font-size:9.5px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;margin-bottom:10px;
+}
+.ins-val{font-size:21px;font-weight:600;letter-spacing:-0.02em;line-height:1;margin-bottom:5px}
+.ins-sub{font-size:10px;line-height:1.4}
+
+/* ── ATTAINMENT BAR ── */
+.attain{background:var(--surface);border-radius:12px;padding:13px 15px}
+.attain-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.attain-lbl{
+  font-size:9.5px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--t2);
+}
+.attain-pct{font-size:13px;font-weight:600}
+.track{height:6px;background:var(--track);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.track-fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.22,.68,0,1)}
+.attain-foot{display:flex;justify-content:space-between;font-size:9.5px;color:var(--t3)}
+
+/* ── COLOUR THEMES ── */
+.t-green.status-pill{background:var(--g-bg);color:var(--g-mid)}
+.t-green.delta-chip {background:var(--g-bg);color:var(--g-hi)}
+.t-green.ins-tile   {background:var(--g-bg)}
+.t-green .ins-label {color:var(--g-mid)}
+.t-green .ins-val   {color:var(--g-hi)}
+.t-green .ins-sub   {color:var(--g-mid)}
+.t-green.attain-pct {color:var(--g-mid)}
+.t-green.track-fill {background:var(--g-bar)}
+
+.t-red.status-pill  {background:var(--r-bg);color:var(--r-mid)}
+.t-red.delta-chip   {background:var(--r-bg);color:var(--r-hi)}
+.t-red.ins-tile     {background:var(--r-bg)}
+.t-red .ins-label   {color:var(--r-mid)}
+.t-red .ins-val     {color:var(--r-hi)}
+.t-red .ins-sub     {color:var(--r-mid)}
+.t-red.attain-pct   {color:var(--r-mid)}
+.t-red.track-fill   {background:var(--r-bar)}
+
+.t-amber.status-pill{background:var(--a-bg);color:var(--a-mid)}
+.t-amber.delta-chip {background:var(--a-bg);color:var(--a-hi)}
+.t-amber.ins-tile   {background:var(--a-bg)}
+.t-amber .ins-label {color:var(--a-mid)}
+.t-amber .ins-val   {color:var(--a-hi)}
+.t-amber .ins-sub   {color:var(--a-mid)}
+.t-amber.attain-pct {color:var(--a-mid)}
+.t-amber.track-fill {background:var(--a-bar)}
+
+.t-gray.status-pill {background:var(--surface);color:var(--t2)}
+.t-gray.delta-chip  {background:var(--surface);color:var(--t2)}
+.t-gray.ins-tile    {background:var(--surface)}
+.t-gray .ins-label  {color:var(--t2)}
+.t-gray .ins-val    {color:var(--t1)}
+.t-gray .ins-sub    {color:var(--t3)}
+.t-gray.attain-pct  {color:var(--t2)}
+.t-gray.track-fill  {background:var(--t3)}
 </style>
 </head>
 <body>
-<div id="status">Initialising…</div>
-<h3>Encoding map (encodings[id].name)</h3>
-<pre id="enc-out">waiting…</pre>
-<h3>Row 0 keys (what getSummaryData returns)</h3>
-<pre id="row-out">waiting…</pre>
-<h3>Computed values</h3>
-<pre id="val-out">waiting…</pre>
+<div id="app">
+  <div id="card">
+    <!-- header -->
+    <div class="hdr">
+      <div>
+        <div class="metric-name" id="metric-name">KPI Metric</div>
+        <div class="metric-period" id="metric-period"></div>
+      </div>
+      <div class="status-pill t-gray" id="status-pill">—</div>
+    </div>
+
+    <!-- hero -->
+    <div class="hero-val" id="hero-val">—</div>
+    <div class="hero-sub">
+      <div class="delta-chip t-gray" id="delta-chip">
+        <svg id="delta-svg" width="11" height="11" viewBox="0 0 11 11" fill="none"></svg>
+        <span id="delta-txt">—</span>
+      </div>
+      <span class="vs-text" id="vs-txt"></span>
+    </div>
+
+    <div class="div"></div>
+
+    <!-- insight tiles -->
+    <div class="insight-row">
+      <div class="ins-tile t-gray" id="var-tile">
+        <div class="ins-label">
+          <svg id="var-svg" width="13" height="13" viewBox="0 0 13 13" fill="none"></svg>
+          <span>Variance</span>
+        </div>
+        <div class="ins-val" id="var-val">—</div>
+        <div class="ins-sub" id="var-sub">vs last month</div>
+      </div>
+      <div class="ins-tile t-gray" id="bud-tile">
+        <div class="ins-label">
+          <svg id="bud-svg" width="13" height="13" viewBox="0 0 13 13" fill="none"></svg>
+          <span>vs Budget</span>
+        </div>
+        <div class="ins-val" id="bud-val">—</div>
+        <div class="ins-sub" id="bud-sub">target</div>
+      </div>
+    </div>
+
+    <!-- attainment bar -->
+    <div class="attain" id="attain" style="display:none">
+      <div class="attain-hdr">
+        <span class="attain-lbl">Budget attainment</span>
+        <span class="attain-pct t-gray" id="attain-pct">—</span>
+      </div>
+      <div class="track">
+        <div class="track-fill t-gray" id="track-fill" style="width:0%"></div>
+      </div>
+      <div class="attain-foot">
+        <span>0</span>
+        <span id="attain-target">—</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 'use strict';
 (function(){
 
-  async function getSummaryData(ws) {
-    var rows = [];
-    var reader = await ws.getSummaryDataReaderAsync(undefined, { ignoreSelection: true });
-    for (var i = 0; i < reader.pageCount; i++) {
-      var page = await reader.getPageAsync(i);
-      page.data.forEach(function(r) {
-        var row = {};
-        page.columns.forEach(function(col, idx) { row[col.fieldName] = r[idx]; });
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ── number helpers ── */
+  function fmtMoney(n){
+    if(n===null||isNaN(n)) return '—';
+    var abs=Math.abs(n), s=n<0?'-':'';
+    if(abs>=1e9)  return s+'$'+(abs/1e9).toFixed(2)+'B';
+    if(abs>=1e6)  return s+'$'+(abs/1e6).toFixed(2)+'M';
+    if(abs>=1000) return s+'$'+Math.round(abs).toLocaleString('en-US');
+    return s+'$'+abs.toFixed(0);
+  }
+  function fmtPct(n){ return (n>=0?'+':'')+n.toFixed(1)+'%'; }
+  function absPct(n){ return Math.abs(n).toFixed(1)+'%'; }
+
+  /* ── colour logic ── */
+  function varClr(delta)       { return delta>=0?'t-green':'t-red'; }
+  function budClr(actual,bud)  {
+    if(!bud) return 't-gray';
+    var p=(actual/bud)*100;
+    return p>=100?'t-green':p>=90?'t-amber':'t-red';
+  }
+
+  /* ── apply colour class ── */
+  var CLRS=['t-green','t-red','t-amber','t-gray'];
+  function setClr(id,clr){
+    var el=$(id);
+    CLRS.forEach(function(c){ el.classList.remove(c); });
+    el.classList.add(clr);
+  }
+
+  /* ── arrow SVG ── */
+  function arrow(up,size){
+    var h=size-1;
+    var pts=up?('1,'+h+' '+(size/2)+',2 '+(h)+','+h):('1,2 '+(size/2)+','+h+' '+h+',2');
+    return '<polyline points="'+pts+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+
+  /* ── field name prettifier ── */
+  function pretty(name){
+    return name
+      .replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
+      .replace(/[_-]/g,' ')
+      .replace(/\b\w/g,function(c){return c.toUpperCase();})
+      .trim();
+  }
+
+  /* ── CONFIRMED WORKING data reader (from debug output) ── */
+  async function getSummaryData(ws){
+    var rows=[];
+    var reader=await ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true});
+    for(var i=0;i<reader.pageCount;i++){
+      var page=await reader.getPageAsync(i);
+      page.data.forEach(function(r){
+        var row={};
+        page.columns.forEach(function(col,idx){ row[col.fieldName]=r[idx]; });
         rows.push(row);
       });
     }
@@ -40,85 +262,125 @@
     return rows;
   }
 
-  async function getEncodingMap(ws) {
-    var spec  = await ws.getVisualSpecificationAsync();
-    var map   = {};
-    if (spec.activeMarksSpecificationIndex < 0) return map;
-    var marks = spec.marksSpecifications[spec.activeMarksSpecificationIndex];
-    marks.encodings.forEach(function(e) { map[e.id] = e.field; });
+  async function getEncodingMap(ws){
+    var spec=await ws.getVisualSpecificationAsync();
+    var map={};
+    if(spec.activeMarksSpecificationIndex<0) return map;
+    var marks=spec.marksSpecifications[spec.activeMarksSpecificationIndex];
+    marks.encodings.forEach(function(e){ map[e.id]=e.field; });
     return map;
   }
 
-  window.onload = tableau.extensions.initializeAsync().then(function() {
-    var ws = tableau.extensions.worksheetContent.worksheet;
+  /* ── render ── */
+  function render(data,encodings){
+    if(!encodings.actual||!data.length) return;
 
-    async function update() {
-      try {
-        document.getElementById('status').className = 'ok';
-        document.getElementById('status').textContent = '✓ Extension initialised — worksheet: ' + ws.name;
+    var row=data[0];
 
-        var data      = await getSummaryData(ws);
-        var encodings = await getEncodingMap(ws);
-
-        /* show encoding map */
-        var encDump = {};
-        Object.keys(encodings).forEach(function(k){
-          encDump[k] = encodings[k] ? {
-            name: encodings[k].name,
-            role: encodings[k].role,
-            dataType: encodings[k].dataType
-          } : null;
-        });
-        document.getElementById('enc-out').textContent = JSON.stringify(encDump, null, 2);
-
-        /* show row 0 keys and raw values */
-        if (data.length > 0) {
-          var row0dump = {};
-          var row0 = data[0];
-          Object.keys(row0).forEach(function(k){
-            var dv = row0[k];
-            row0dump[k] = {
-              value:          dv ? dv.value          : null,
-              nativeValue:    dv ? dv.nativeValue    : null,
-              formattedValue: dv ? dv.formattedValue : null
-            };
-          });
-          document.getElementById('row-out').textContent =
-            'total rows: ' + data.length + '\n\nrow[0]:\n' + JSON.stringify(row0dump, null, 2);
-        } else {
-          document.getElementById('row-out').textContent = 'NO ROWS RETURNED';
-        }
-
-        /* try to read values using encoding field names */
-        var valDump = {};
-        ['actual','previous','budget'].forEach(function(encId){
-          if (!encodings[encId]) { valDump[encId] = 'ENCODING NOT FOUND'; return; }
-          var fieldName = encodings[encId].name;
-          valDump[encId + '_fieldName'] = fieldName;
-          if (!data.length) { valDump[encId] = 'NO ROWS'; return; }
-          var dv = data[0][fieldName];
-          if (!dv) {
-            /* try fallback: scan row keys for a key containing the field name */
-            var fallback = Object.keys(data[0]).find(function(k){
-              return k.indexOf(fieldName) !== -1 || fieldName.indexOf(k) !== -1;
-            });
-            valDump[encId + '_fallbackKey'] = fallback || 'NOT FOUND IN ROW';
-            dv = fallback ? data[0][fallback] : null;
-          }
-          valDump[encId] = dv ? {
-            value: dv.value, nativeValue: dv.nativeValue, formattedValue: dv.formattedValue
-          } : 'NULL DataValue';
-        });
-        document.getElementById('val-out').textContent = JSON.stringify(valDump, null, 2);
-
-      } catch(e) {
-        document.getElementById('status').className = 'err';
-        document.getElementById('status').textContent = 'ERROR: ' + String(e);
-        console.error(e);
-      }
+    /* read a DataValue for an encoding id — field name is encodings[id].name
+       which the debug confirmed returns e.g. "SUM(actual)"
+       and the row keys ARE those same "SUM(actual)" strings              */
+    function dv(encId){
+      if(!encodings[encId]) return null;
+      return row[encodings[encId].name]||null;
+    }
+    function num(encId){
+      var d=dv(encId); if(!d) return null;
+      var n=parseFloat(d.nativeValue!==undefined?d.nativeValue:d.value);
+      return isNaN(n)?null:n;
+    }
+    function fmt(encId){
+      var d=dv(encId); if(!d) return null;
+      /* use Tableau's own formattedValue — it already has commas/currency */
+      var f=d.formattedValue;
+      return(f&&f!=='%null%'&&f!=='Null')?f:fmtMoney(num(encId));
     }
 
-    ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, update);
+    var actualN   = num('actual');
+    var actualFmt = fmt('actual');
+    var prevN     = num('previous');
+    var budN      = num('budget');
+    var budFmt    = fmt('budget');
+
+    if(actualN===null) return;
+
+    /* deltas */
+    var momDelta  = (prevN!==null) ? actualN-prevN : null;
+    var momPct    = (momDelta!==null&&prevN!==0) ? (momDelta/Math.abs(prevN))*100 : null;
+    var attainPct = (budN!==null&&budN!==0) ? (actualN/budN)*100 : null;
+    var budDiffPct= attainPct!==null ? attainPct-100 : null;
+
+    /* colours */
+    var vClr = momDelta!==null ? varClr(momDelta) : 't-gray';
+    var bClr = budN!==null     ? budClr(actualN,budN) : 't-gray';
+    var overallClr = budN!==null ? bClr : vClr;
+    var statusMap  = {'t-green':'On Track','t-amber':'Near Target','t-red':'Off Track','t-gray':'—'};
+
+    /* ── header ── */
+    $('metric-name').textContent = pretty(encodings.actual.name);
+    $('metric-period').textContent = '';
+
+    /* status pill */
+    setClr('status-pill', overallClr);
+    $('status-pill').textContent = statusMap[overallClr];
+
+    /* ── hero ── */
+    $('hero-val').textContent = actualFmt||fmtMoney(actualN);
+
+    /* delta chip */
+    setClr('delta-chip', vClr);
+    if(momDelta!==null){
+      var up=momDelta>=0;
+      $('delta-svg').innerHTML=arrow(up,11);
+      $('delta-txt').textContent=(up?'+':'')+fmtMoney(momDelta)+'   '+fmtPct(momPct);
+      $('vs-txt').textContent='vs '+pretty(encodings.previous.name);
+    } else {
+      $('delta-svg').innerHTML='';
+      $('delta-txt').textContent='No prior data';
+      $('vs-txt').textContent='';
+    }
+
+    /* ── variance tile ── */
+    setClr('var-tile', vClr);
+    $('var-svg').innerHTML = momDelta!==null ? arrow(momDelta>=0,13) : '';
+    $('var-val').textContent = momDelta!==null ? (momDelta>=0?'+':'')+fmtMoney(momDelta) : '—';
+    $('var-sub').textContent = momPct!==null
+      ? (momDelta>=0?'▲ ':'▼ ')+absPct(momPct)+' vs '+pretty(encodings.previous.name)
+      : 'Drop Previous Month field';
+
+    /* ── budget tile ── */
+    setClr('bud-tile', bClr);
+    $('bud-svg').innerHTML = budN!==null ? arrow(actualN>=budN,13) : '';
+    $('bud-val').textContent = budFmt||fmtMoney(budN)||'—';
+    if(budDiffPct!==null){
+      var above=budDiffPct>=0;
+      $('bud-sub').textContent=(above?'▲ ':'▼ ')+absPct(budDiffPct)+' '+(above?'above':'below')+' target';
+    } else {
+      $('bud-sub').textContent='Drop Budget / Target field';
+    }
+
+    /* ── attainment bar ── */
+    if(attainPct!==null){
+      $('attain').style.display='';
+      setClr('attain-pct',bClr);
+      setClr('track-fill',bClr);
+      $('attain-pct').textContent=Math.round(attainPct)+'%';
+      $('track-fill').style.width=Math.min(Math.max(attainPct,0),100)+'%';
+      $('attain-target').textContent='Target '+( budFmt||fmtMoney(budN));
+    } else {
+      $('attain').style.display='none';
+    }
+  }
+
+  /* ── init — same pattern as confirmed working Neon Donut ── */
+  window.onload = tableau.extensions.initializeAsync().then(function(){
+    var ws=tableau.extensions.worksheetContent.worksheet;
+    var update=async function(){
+      var data     =await getSummaryData(ws);
+      var encodings=await getEncodingMap(ws);
+      render(data,encodings);
+    };
+    ws.addEventListener(tableau.TableauEventType.SummaryDataChanged,update);
     update();
   });
 
