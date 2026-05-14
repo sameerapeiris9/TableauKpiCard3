@@ -4,541 +4,481 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>KPI Card</title>
-<script src="../../lib/tableau.extensions.1.latest.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api/lib/tableau.extensions.1.latest.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root{
-  --page:       #f0f0ec;
-  --card:       #ffffff;
-  --bdr:        rgba(0,0,0,0.07);
-  --bdr2:       rgba(0,0,0,0.05);
-  --t1:         #111111;
-  --t2:         #666666;
-  --t3:         #aaaaaa;
-  --surface:    #f7f7f5;
-  --track:      #e8e8e4;
+  :root {
+    --page:    #f0f0ec;
+    --card:    #ffffff;
+    --bdr:     rgba(0,0,0,0.07);
+    --t1:      #111111;
+    --t2:      #666666;
+    --t3:      #aaaaaa;
+    --surface: #f5f5f2;
+    --track:   #e4e4df;
 
-  --g-text:     #27500a;
-  --g-text2:    #3b6d11;
-  --g-bg:       #eaf3de;
-  --g-dark:     #1a3d08;
-  --g-bar:      #639922;
+    --g-bg:    #eaf3de; --g-hi:  #27500a; --g-mid: #3b6d11; --g-bar: #639922;
+    --r-bg:    #fcebeb; --r-hi:  #5c1515; --r-mid: #a32d2d; --r-bar: #e24b4a;
+    --a-bg:    #faeeda; --a-hi:  #633806; --a-mid: #854f0b; --a-bar: #ef9f27;
+  }
 
-  --r-text:     #a32d2d;
-  --r-text2:    #791f1f;
-  --r-bg:       #fcebeb;
-  --r-dark:     #5c1515;
-  --r-bar:      #e24b4a;
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--page);
+    font-family: 'Inter', -apple-system, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
 
-  --a-text:     #854f0b;
-  --a-text2:    #633806;
-  --a-bg:       #faeeda;
-  --a-bar:      #ef9f27;
+  /* ── CARD SHELL ─────────────────────────────────────────────── */
+  #app {
+    width: calc(100% - 20px);
+    max-width: 390px;
+  }
 
-  --radius:     14px;
-  --radius-sm:  10px;
-  --font:       'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-}
+  /* ── PLACEHOLDER ─────────────────────────────────────────────── */
+  #ph {
+    background: var(--card);
+    border-radius: 16px;
+    border: 0.5px solid var(--bdr);
+    padding: 36px 28px;
+    text-align: center;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+  #ph .ph-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--surface); border: 0.5px solid var(--bdr);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  #ph h3 { font-size: 13px; font-weight: 600; color: var(--t2); margin-bottom: 6px; }
+  #ph p  { font-size: 11px; color: var(--t3); line-height: 1.7; }
+  .ph-tiles { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+  .ph-tile  {
+    background: var(--surface); border: 0.5px solid var(--bdr);
+    border-radius: 7px; padding: 4px 10px;
+    font-size: 10px; font-weight: 500; color: var(--t2);
+  }
 
-html,body{
-  width:100%;height:100%;
-  background:var(--page);
-  font-family:var(--font);
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;
-}
+  /* ── ERROR ───────────────────────────────────────────────────── */
+  #err {
+    display: none;
+    background: var(--r-bg); border: 0.5px solid var(--r-bar);
+    border-radius: 12px; padding: 16px 18px;
+    font-size: 11px; color: var(--r-mid); line-height: 1.7;
+    word-break: break-word;
+  }
 
-/* ── WRAPPER ── */
-.wrap{
-  width:calc(100% - 20px);
-  max-width:380px;
-}
+  /* ── CARD ────────────────────────────────────────────────────── */
+  #card {
+    display: none;
+    background: var(--card);
+    border-radius: 16px;
+    border: 0.5px solid var(--bdr);
+    padding: 22px 22px 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.06);
+    animation: rise .35s cubic-bezier(.22,.68,0,1.15) both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(7px) scale(.98); }
+    to   { opacity: 1; transform: none; }
+  }
 
-/* ── PLACEHOLDER ── */
-#ph{
-  display:flex;flex-direction:column;align-items:center;
-  gap:10px;text-align:center;padding:32px;
-  color:var(--t3);font-size:12px;line-height:1.65;
-}
-#ph .ico{
-  width:44px;height:44px;border-radius:12px;
-  background:var(--card);border:0.5px solid var(--bdr);
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:4px;
-}
-#ph strong{font-size:13px;font-weight:500;color:var(--t2)}
-#ph .tiles{
-  display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:2px;
-}
-#ph .tile{
-  background:var(--card);border:0.5px solid var(--bdr);
-  border-radius:6px;padding:3px 9px;
-  font-size:10px;font-weight:500;color:var(--t2);
-}
+  /* ── HEADER ─────────────────────────────────────────────────── */
+  .hdr {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 18px;
+  }
+  .metric-name {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--t2); margin-bottom: 3px;
+  }
+  .metric-period { font-size: 11px; color: var(--t3); }
+  .status-pill {
+    font-size: 9.5px; font-weight: 600; letter-spacing: .05em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 99px;
+    white-space: nowrap; flex-shrink: 0;
+  }
 
-/* ── ERROR ── */
-#err{
-  display:none;flex-direction:column;align-items:center;
-  gap:8px;text-align:center;padding:28px;
-}
-#err-body{
-  font-size:11px;color:var(--r-text);background:var(--r-bg);
-  padding:10px 14px;border-radius:8px;
-  word-break:break-word;text-align:left;line-height:1.6;width:100%;
-}
+  /* ── HERO ────────────────────────────────────────────────────── */
+  .hero-val {
+    font-size: 42px; font-weight: 600; color: var(--t1);
+    letter-spacing: -0.03em; line-height: 1; margin-bottom: 10px;
+  }
+  .hero-sub {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+  }
+  .delta-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 500; padding: 4px 11px;
+    border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+  }
+  .delta-chip svg { flex-shrink: 0; }
+  .vs-text { font-size: 11px; color: var(--t3); }
 
-/* ── CARD ── */
-#card{
-  display:none;
-  background:var(--card);
-  border-radius:var(--radius);
-  border:0.5px solid var(--bdr);
-  padding:22px 22px 20px;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.04),
-    0 4px 12px rgba(0,0,0,0.05),
-    0 12px 32px rgba(0,0,0,0.05);
-  animation:rise .32s cubic-bezier(.22,.68,0,1.2) both;
-}
-@keyframes rise{
-  from{opacity:0;transform:translateY(8px) scale(.98)}
-  to  {opacity:1;transform:none}
-}
+  /* ── DIVIDER ─────────────────────────────────────────────────── */
+  .div { height: 0.5px; background: var(--bdr); margin-bottom: 18px; }
 
-/* ── HEADER ── */
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
-.hdr-left .metric-name{
-  font-size:10.5px;font-weight:600;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--t2);margin-bottom:3px;
-}
-.hdr-left .metric-period{font-size:11px;color:var(--t3)}
-.status-badge{
-  font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
-  padding:3px 9px;border-radius:99px;white-space:nowrap;flex-shrink:0;
-}
-.status-badge.green{background:var(--g-bg);color:var(--g-text)}
-.status-badge.red  {background:var(--r-bg);color:var(--r-text)}
-.status-badge.amber{background:var(--a-bg);color:var(--a-text)}
-.status-badge.gray {background:var(--surface);color:var(--t2)}
+  /* ── INSIGHT TILES ───────────────────────────────────────────── */
+  .insight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .ins-tile { border-radius: 12px; padding: 14px 15px; }
+  .ins-top {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 9.5px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; margin-bottom: 9px;
+  }
+  .ins-val { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; margin-bottom: 4px; }
+  .ins-sub { font-size: 10px; }
 
-/* ── HERO ── */
-.hero-val{
-  font-size:40px;font-weight:600;color:var(--t1);
-  letter-spacing:-0.03em;line-height:1;margin-bottom:10px;
-}
-.hero-sub{display:flex;align-items:center;gap:7px;margin-bottom:18px}
-.delta-pill{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:11px;font-weight:500;padding:3px 10px;border-radius:7px;
-  white-space:nowrap;flex-shrink:0;
-}
-.delta-pill.green{background:var(--g-bg);color:var(--g-text)}
-.delta-pill.red  {background:var(--r-bg);color:var(--r-text)}
-.delta-pill.gray {background:var(--surface);color:var(--t2)}
-.vs-label{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* ── ATTAINMENT BAR ──────────────────────────────────────────── */
+  .attain {
+    border-radius: 11px; padding: 13px 15px;
+    background: var(--surface);
+  }
+  .attain-hdr {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 9px;
+  }
+  .attain-label {
+    font-size: 9.5px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--t2);
+  }
+  .attain-pct { font-size: 13px; font-weight: 600; }
+  .track {
+    height: 6px; background: var(--track);
+    border-radius: 99px; overflow: hidden; margin-bottom: 6px;
+  }
+  .track-fill { height: 100%; border-radius: 99px; transition: width .6s cubic-bezier(.22,.68,0,1); }
+  .attain-foot { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--t3); }
 
-/* ── DIVIDER ── */
-.div{height:0.5px;background:var(--bdr);margin-bottom:16px}
+  /* ── COLOUR THEMES ───────────────────────────────────────────── */
+  .green .status-pill, .green.status-pill { background: var(--g-bg); color: var(--g-mid); }
+  .green .delta-chip,  .green.delta-chip  { background: var(--g-bg); color: var(--g-hi);  }
+  .green.ins-tile { background: var(--g-bg); }
+  .green .ins-top { color: var(--g-mid); }
+  .green .ins-val { color: var(--g-hi);  }
+  .green .ins-sub { color: var(--g-mid); }
+  .green.attain-pct   { color: var(--g-mid); }
+  .green.track-fill   { background: var(--g-bar); }
 
-/* ── INSIGHT TILES ── */
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.tile{border-radius:var(--radius-sm);padding:14px 15px}
-.tile-icon{
-  display:flex;align-items:center;gap:5px;
-  font-size:9.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
-  margin-bottom:9px;
-}
-.tile-icon svg{flex-shrink:0}
-.tile-val{font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1;margin-bottom:4px}
-.tile-sub{font-size:10px;font-weight:400}
+  .red .status-pill, .red.status-pill { background: var(--r-bg); color: var(--r-mid); }
+  .red .delta-chip,  .red.delta-chip  { background: var(--r-bg); color: var(--r-hi);  }
+  .red.ins-tile { background: var(--r-bg); }
+  .red .ins-top { color: var(--r-mid); }
+  .red .ins-val { color: var(--r-hi);  }
+  .red .ins-sub { color: var(--r-mid); }
+  .red.attain-pct  { color: var(--r-mid); }
+  .red.track-fill  { background: var(--r-bar); }
 
-.tile.green .tile-icon{color:var(--g-text2)}
-.tile.green .tile-val {color:var(--g-dark)}
-.tile.green .tile-sub {color:var(--g-text2)}
-.tile.green{background:var(--g-bg)}
+  .amber .status-pill, .amber.status-pill { background: var(--a-bg); color: var(--a-mid); }
+  .amber .delta-chip,  .amber.delta-chip  { background: var(--a-bg); color: var(--a-hi);  }
+  .amber.ins-tile { background: var(--a-bg); }
+  .amber .ins-top { color: var(--a-mid); }
+  .amber .ins-val { color: var(--a-hi);  }
+  .amber .ins-sub { color: var(--a-mid); }
+  .amber.attain-pct  { color: var(--a-mid); }
+  .amber.track-fill  { background: var(--a-bar); }
 
-.tile.red .tile-icon{color:var(--r-text)}
-.tile.red .tile-val {color:var(--r-dark)}
-.tile.red .tile-sub {color:var(--r-text)}
-.tile.red{background:var(--r-bg)}
-
-.tile.amber .tile-icon{color:var(--a-text2)}
-.tile.amber .tile-val {color:var(--a-text2)}
-.tile.amber .tile-sub {color:var(--a-text)}
-.tile.amber{background:var(--a-bg)}
-
-.tile.gray .tile-icon{color:var(--t2)}
-.tile.gray .tile-val {color:var(--t1)}
-.tile.gray .tile-sub {color:var(--t3)}
-.tile.gray{background:var(--surface)}
-
-/* ── ATTAINMENT BAR ── */
-.attain{background:var(--surface);border-radius:var(--radius-sm);padding:12px 14px}
-.attain-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.attain-label{
-  font-size:9.5px;font-weight:600;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--t2);
-}
-.attain-pct{font-size:12px;font-weight:600}
-.attain-pct.green{color:var(--g-text2)}
-.attain-pct.red  {color:var(--r-text)}
-.attain-pct.amber{color:var(--a-text)}
-.track{height:5px;background:var(--track);border-radius:99px;overflow:hidden;margin-bottom:5px}
-.track-fill{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.22,.68,0,1)}
-.track-fill.green{background:var(--g-bar)}
-.track-fill.red  {background:var(--r-bar)}
-.track-fill.amber{background:var(--a-bar)}
-.attain-foot{display:flex;justify-content:space-between;font-size:9px;color:var(--t3)}
+  .gray .status-pill, .gray.status-pill { background: var(--surface); color: var(--t2); }
+  .gray .delta-chip,  .gray.delta-chip  { background: var(--surface); color: var(--t2); }
+  .gray.ins-tile { background: var(--surface); }
+  .gray .ins-top { color: var(--t2); }
+  .gray .ins-val { color: var(--t1); }
+  .gray .ins-sub { color: var(--t3); }
+  .gray.attain-pct  { color: var(--t2); }
+  .gray.track-fill  { background: var(--t3); }
 </style>
 </head>
 <body>
-
-<div class="wrap">
+<div id="app">
 
   <!-- placeholder -->
   <div id="ph">
-    <div class="ico">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <rect x="1" y="1" width="18" height="18" rx="5" stroke="#bbb" stroke-width="1.2"/>
-        <path d="M4 14 L7 9 L11 11 L16 5" stroke="#bbb" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <div class="ph-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5" stroke="#bbb" stroke-width="1.3"/>
+        <path d="M5 15 L8 10 L12 12 L17 6" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <strong>KPI Card</strong>
-    <span>Drop your measures onto the Marks card tiles</span>
-    <div class="tiles">
-      <div class="tile">Actual</div>
-      <div class="tile">Previous Month</div>
-      <div class="tile">Budget / Target</div>
+    <h3>KPI Card</h3>
+    <p>Drop your measures onto the Marks card</p>
+    <div class="ph-tiles">
+      <div class="ph-tile">Actual</div>
+      <div class="ph-tile">Previous Month</div>
+      <div class="ph-tile">Budget / Target</div>
     </div>
   </div>
 
   <!-- error -->
-  <div id="err">
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="14" stroke="#f09595" stroke-width="1.2"/>
-      <path d="M16 9 L16 17" stroke="#f09595" stroke-width="1.8" stroke-linecap="round"/>
-      <circle cx="16" cy="22" r="1.5" fill="#f09595"/>
-    </svg>
-    <div id="err-body"></div>
-  </div>
+  <div id="err"></div>
 
   <!-- card -->
   <div id="card">
-
     <div class="hdr">
-      <div class="hdr-left">
+      <div>
         <div class="metric-name" id="metric-name">KPI Metric</div>
         <div class="metric-period" id="metric-period"></div>
       </div>
-      <div class="status-badge gray" id="status-badge"></div>
+      <div class="status-pill" id="status-pill"></div>
     </div>
 
     <div class="hero-val" id="hero-val">—</div>
 
     <div class="hero-sub">
-      <div class="delta-pill gray" id="delta-pill">—</div>
-      <span class="vs-label" id="vs-label"></span>
+      <div class="delta-chip" id="delta-chip">
+        <svg id="delta-arrow" width="11" height="11" viewBox="0 0 11 11" fill="none"></svg>
+        <span id="delta-text">—</span>
+      </div>
+      <span class="vs-text" id="vs-text"></span>
     </div>
 
     <div class="div"></div>
 
-    <div class="tiles">
-      <div class="tile gray" id="var-tile">
-        <div class="tile-icon">
-          <svg id="var-icon" width="13" height="13" viewBox="0 0 13 13" fill="none"></svg>
+    <div class="insight-row">
+      <div class="ins-tile" id="var-tile">
+        <div class="ins-top">
+          <svg id="var-arrow" width="13" height="13" viewBox="0 0 13 13" fill="none"></svg>
           <span>Variance</span>
         </div>
-        <div class="tile-val" id="var-val">—</div>
-        <div class="tile-sub" id="var-sub">vs last month</div>
+        <div class="ins-val" id="var-val">—</div>
+        <div class="ins-sub" id="var-sub"></div>
       </div>
-      <div class="tile gray" id="bud-tile">
-        <div class="tile-icon">
-          <svg id="bud-icon" width="13" height="13" viewBox="0 0 13 13" fill="none"></svg>
+      <div class="ins-tile" id="bud-tile">
+        <div class="ins-top">
+          <svg id="bud-arrow" width="13" height="13" viewBox="0 0 13 13" fill="none"></svg>
           <span>vs Budget</span>
         </div>
-        <div class="tile-val" id="bud-val">—</div>
-        <div class="tile-sub" id="bud-sub">target</div>
+        <div class="ins-val" id="bud-val">—</div>
+        <div class="ins-sub" id="bud-sub"></div>
       </div>
     </div>
 
     <div class="attain" id="attain" style="display:none">
       <div class="attain-hdr">
         <span class="attain-label">Budget attainment</span>
-        <span class="attain-pct gray" id="attain-pct">—</span>
+        <span class="attain-pct" id="attain-pct">—</span>
       </div>
-      <div class="track"><div class="track-fill gray" id="track-fill" style="width:0%"></div></div>
+      <div class="track">
+        <div class="track-fill" id="track-fill" style="width:0%"></div>
+      </div>
       <div class="attain-foot">
         <span>$0</span>
-        <span id="attain-target">—</span>
+        <span id="attain-foot-r">—</span>
       </div>
     </div>
-
   </div>
 
 </div>
-
 <script>
 'use strict';
-(function(){
+(function () {
 
-  /* ── DOM ───────────────────────────────────────── */
-  var $=function(id){return document.getElementById(id)};
+  /* ── Helpers ─────────────────────────────────────────────────── */
+  function $(id) { return document.getElementById(id); }
 
-  /* ── States ────────────────────────────────────── */
-  function showPh() { $('ph').style.display=''; $('err').style.display='none'; $('card').style.display='none'; }
-  function showErr(msg){ $('ph').style.display='none'; $('err').style.display='flex'; $('card').style.display='none'; $('err-body').textContent=msg; }
-  function showCard(){ $('ph').style.display='none'; $('err').style.display='none'; $('card').style.display=''; }
+  function showPh()   { $('ph').style.display = '';     $('err').style.display = 'none'; $('card').style.display = 'none'; }
+  function showErr(m) { $('ph').style.display = 'none'; $('err').style.display = '';     $('card').style.display = 'none'; $('err').textContent = 'Error: ' + m; }
+  function showCard() { $('ph').style.display = 'none'; $('err').style.display = 'none'; $('card').style.display = ''; }
 
-  /* ── Number helpers ────────────────────────────── */
-  function fmtMoney(n){
-    if(n===null||isNaN(n)) return '—';
-    var abs=Math.abs(n), s=n<0?'-':'';
-    if(abs>=1e9)  return s+'$'+(abs/1e9).toFixed(2)+'B';
-    if(abs>=1e6)  return s+'$'+(abs/1e6).toFixed(2)+'M';
-    if(abs>=1000) return s+'$'+Math.round(abs).toLocaleString('en-US');
-    return s+'$'+abs.toFixed(0);
+  function fmtMoney(n) {
+    if (n === null || isNaN(n)) return '—';
+    var abs = Math.abs(n), s = n < 0 ? '-' : '';
+    if (abs >= 1e9)  return s + '$' + (abs / 1e9).toFixed(2) + 'B';
+    if (abs >= 1e6)  return s + '$' + (abs / 1e6).toFixed(2) + 'M';
+    if (abs >= 1000) return s + '$' + Math.round(abs).toLocaleString('en-US');
+    return s + '$' + abs.toFixed(0);
   }
-  function fmtPct(n){ return n===null?'—':Math.abs(n).toFixed(1)+'%'; }
+  function fmtPct(n) { return Math.abs(n).toFixed(1) + '%'; }
 
-  /* ── DataValue helpers ─────────────────────────── */
-  function toNum(dv){
-    if(!dv) return null;
-    var raw=(dv.nativeValue!==undefined&&dv.nativeValue!==null)?dv.nativeValue:dv.value;
-    var n=parseFloat(raw);
-    return isNaN(n)?null:n;
-  }
-  function toFmtStr(dv){
-    if(!dv) return null;
-    var f=dv.formattedValue;
-    if(f&&f!=='%null%'&&f!=='Null'&&f!=='null') return f;
-    var n=toNum(dv); return n!==null?fmtMoney(n):null;
-  }
-  function toStr(dv){
-    if(!dv) return null;
-    var v=(dv.formattedValue!==undefined)?dv.formattedValue:String(dv.value);
-    return(v==='%null%'||v==='Null'||v==='null')?null:v;
+  function arrowSVG(up, size) {
+    var pts = up
+      ? '1,' + (size-1) + ' ' + (size/2) + ',2 ' + (size-1) + ',' + (size-1)
+      : '1,2 ' + (size/2) + ',' + (size-1) + ' ' + (size-1) + ',2';
+    return '<polyline points="' + pts + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
   }
 
-  /* ── Field name cleanup ────────────────────────── */
-  function pretty(s){
-    if(!s) return '';
-    return s.replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i,'$2')
-            .replace(/[_-]/g,' ')
-            .replace(/\b\w/g,function(c){return c.toUpperCase();})
-            .trim();
+  /* colour logic:
+     variance → green if positive, red if negative
+     budget   → green ≥100%, amber 90-99%, red <90% */
+  function varColor(delta)  { return delta >= 0 ? 'green' : 'red'; }
+  function budColor(actual, budget) {
+    if (budget === null || budget === 0) return 'gray';
+    var p = (actual / budget) * 100;
+    return p >= 100 ? 'green' : p >= 90 ? 'amber' : 'red';
   }
 
-  /* ── Insight colour class ──────────────────────── */
-  /* green = positive/above, red = negative/below, amber = near miss (90-99%), gray = no data */
-  function insightColor(actual, reference, mode){
-    /* mode 'variance': positive delta = green, negative = red  */
-    /* mode 'budget':   >= 100% = green, 90-99% = amber, < 90% = red */
-    if(actual===null||reference===null) return 'gray';
-    if(mode==='variance'){
-      var delta=actual-reference;
-      return delta>=0?'green':'red';
-    }
-    if(mode==='budget'){
-      var pct=(actual/reference)*100;
-      if(pct>=100) return 'green';
-      if(pct>=90)  return 'amber';
-      return 'red';
-    }
-    return 'gray';
+  function setColor(el, cls) {
+    ['green','red','amber','gray'].forEach(function(c){ el.classList.remove(c); });
+    el.classList.add(cls);
   }
 
-  /* ── Apply colour class to multiple elements ───── */
-  function applyColor(ids, colorCls, removeOnly){
-    ['green','red','amber','gray'].forEach(function(c){
-      ids.forEach(function(id){ $( id).classList.remove(c); });
-    });
-    if(!removeOnly){
-      ids.forEach(function(id){ $(id).classList.add(colorCls); });
-    }
-  }
-
-  /* ── Up/down SVG polyline ──────────────────────── */
-  function arrowPath(up){
-    return up
-      ? '<polyline points="1,11 6.5,3 12,11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
-      : '<polyline points="1,3 6.5,11 12,3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
-  }
-
-  /* ── Tableau init ──────────────────────────────── */
-  var ws=null;
-  window.onload=function(){
-    tableau.extensions.initializeAsync().then(function(){
-      ws=tableau.extensions.worksheetContent.worksheet;
-      ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, refresh);
-      refresh();
-    },function(err){ showErr('Init failed: '+String(err)); });
-  };
-
-  /* ── Refresh ───────────────────────────────────── */
-  function refresh(){
-    getEncodings().then(function(enc){
-      return getData().then(function(d){ render(enc,d.cols,d.rows); });
-    }).catch(function(e){ showErr('Error: '+String(e)); });
-  }
-
-  /* ── Encoding map ──────────────────────────────── */
-  function getEncodings(){
-    return ws.getVisualSpecificationAsync().then(function(spec){
-      var marks=spec.marksSpecifications[spec.activeMarksSpecificationIndex];
-      var map={};
-      marks.encodings.forEach(function(e){
-        if(!map[e.id]) map[e.id]=[];
-        if(e.field&&e.field.name) map[e.id].push(e.field.name);
+  /* ── EXACT same data-reading pattern as working Neon Donut ───── */
+  async function getSummaryData(ws) {
+    var rows = [];
+    var reader = await ws.getSummaryDataReaderAsync(undefined, { ignoreSelection: true });
+    for (var i = 0; i < reader.pageCount; i++) {
+      var page = await reader.getPageAsync(i);
+      page.data.forEach(function(r) {
+        var row = {};
+        page.columns.forEach(function(col, idx) { row[col.fieldName] = r[idx]; });
+        rows.push(row);
       });
-      return map;
-    });
+    }
+    await reader.releaseAsync();
+    return rows;
   }
 
-  /* ── Summary data ──────────────────────────────── */
-  function getData(){
-    return ws.getSummaryDataReaderAsync(undefined,{ignoreSelection:true}).then(function(rdr){
-      var pages=[], chain=Promise.resolve();
-      var pc=rdr.pageCount;
-      for(var p=0;p<pc;p++){
-        (function(n){
-          chain=chain.then(function(){
-            return rdr.getPageAsync(n).then(function(pg){ pages.push(pg); });
-          });
-        })(p);
-      }
-      return chain.then(function(){
-        return rdr.releaseAsync().then(function(){
-          if(!pages.length) return{cols:[],rows:[]};
-          var cols=pages[0].columns.map(function(c){return{name:c.fieldName,idx:c.index};});
-          var rows=[];
-          pages.forEach(function(pg){ pg.data.forEach(function(r){ rows.push(r); }); });
-          return{cols:cols,rows:rows};
-        });
-      });
-    });
+  /* ── EXACT same encoding-map pattern as working Neon Donut ───── */
+  async function getEncodingMap(ws) {
+    var spec = await ws.getVisualSpecificationAsync();
+    var map = {};
+    if (spec.activeMarksSpecificationIndex < 0) return map;
+    var marks = spec.marksSpecifications[spec.activeMarksSpecificationIndex];
+    marks.encodings.forEach(function(e) { map[e.id] = e.field; });
+    return map;
   }
 
-  /* ── Render ────────────────────────────────────── */
-  function render(enc,cols,rows){
-    if(!rows.length){ showPh(); return; }
+  /* ── Render ──────────────────────────────────────────────────── */
+  function render(data, encodings) {
+    /* need at least actual */
+    if (!encodings.actual || data.length === 0) { showPh(); return; }
 
-    function ci(name){ for(var i=0;i<cols.length;i++) if(cols[i].name===name) return cols[i].idx; return -1; }
-    function cell(row,name){ var i=ci(name); return i>=0?row[i]:null; }
-    function firstOf(id){
-      var f=(enc[id]||[])[0];
-      if(!f||!rows.length) return{v:null,fmt:null,field:null};
-      var dv=cell(rows[0],f);
-      return{v:toNum(dv),fmt:toFmtStr(dv),field:f};
+    var row = data[0];
+
+    /* read values using fieldName from encoding (same as Neon Donut) */
+    function readNum(encId) {
+      if (!encodings[encId]) return null;
+      var dv = row[encodings[encId].name];
+      if (!dv) return null;
+      var n = parseFloat(dv.nativeValue !== undefined ? dv.nativeValue : dv.value);
+      return isNaN(n) ? null : n;
+    }
+    function readFmt(encId) {
+      if (!encodings[encId]) return null;
+      var dv = row[encodings[encId].name];
+      if (!dv) return null;
+      var f = dv.formattedValue;
+      if (f && f !== '%null%' && f !== 'Null') return f;
+      var n = readNum(encId);
+      return n !== null ? fmtMoney(n) : null;
+    }
+    function readStr(encId) {
+      if (!encodings[encId]) return null;
+      var dv = row[encodings[encId].name];
+      if (!dv) return null;
+      var v = dv.formattedValue !== undefined ? dv.formattedValue : String(dv.value);
+      return (v === '%null%' || v === 'Null') ? null : v;
     }
 
-    var actual   = firstOf('actual');
-    var previous = firstOf('previous');
-    var budget   = firstOf('budget');
+    var actualV   = readNum('actual');
+    var actualFmt = readFmt('actual');
+    var prevV     = readNum('previous');
+    var budgetV   = readNum('budget');
+    var budgetFmt = readFmt('budget');
 
-    if(actual.v===null){ showPh(); return; }
+    /* field name labels — clean up SUM(...) etc */
+    function pretty(encId) {
+      if (!encodings[encId]) return '';
+      return encodings[encId].name
+        .replace(/^(SUM|AVG|MIN|MAX|COUNT|ATTR)\((.+)\)$/i, '$2')
+        .replace(/[_-]/g, ' ')
+        .replace(/\b\w/g, function(c){ return c.toUpperCase(); }).trim();
+    }
+
+    if (actualV === null) { showPh(); return; }
     showCard();
 
-    /* ── period label from Detail/Tooltip ── */
-    var dateField=(enc['detail']||enc['tooltip']||[])[0]||null;
-    var periodStr='';
-    if(dateField&&rows.length){
-      var pdv=cell(rows[0],dateField);
-      periodStr=pdv?toStr(pdv)||'':'';
+    /* period — try detail/tooltip fields */
+    var periodStr = '';
+    var detField = encodings['detail'] || encodings['tooltip'];
+    if (detField && row[detField.name]) {
+      var s = row[detField.name].formattedValue;
+      if (s && s !== '%null%' && s !== 'Null') periodStr = s;
     }
 
-    /* ── header ── */
-    $('metric-name').textContent=actual.field?pretty(actual.field):'KPI Metric';
-    $('metric-period').textContent=periodStr;
+    /* deltas */
+    var momDelta = (prevV !== null && prevV !== 0) ? actualV - prevV : null;
+    var momPct   = (momDelta !== null && prevV !== 0) ? (momDelta / Math.abs(prevV)) * 100 : null;
+    var attainPct = (budgetV !== null && budgetV !== 0) ? (actualV / budgetV) * 100 : null;
+    var budDeltaPct = attainPct !== null ? attainPct - 100 : null;
 
-    /* ── deltas ── */
-    var momDelta=null, momPct=null;
-    if(actual.v!==null&&previous.v!==null&&previous.v!==0){
-      momDelta=actual.v-previous.v;
-      momPct=(momDelta/Math.abs(previous.v))*100;
-    }
+    /* overall colour */
+    var overallClr = budgetV !== null ? budColor(actualV, budgetV) : (momDelta !== null ? varColor(momDelta) : 'gray');
+    var statusText = { green: 'On Track', amber: 'Near Target', red: 'Off Track', gray: '—' }[overallClr];
 
-    var budDelta=null, budPct=null;
-    if(actual.v!==null&&budget.v!==null&&budget.v!==0){
-      budDelta=actual.v-budget.v;
-      budPct=((actual.v/budget.v)*100);
-    }
+    /* ── populate DOM ── */
+    $('metric-name').textContent   = pretty('actual') || 'KPI Metric';
+    $('metric-period').textContent = periodStr;
 
-    /* ── overall status badge ── */
-    /* governed by budget if available, else variance */
-    var overallColor='gray', overallText='—';
-    if(budget.v!==null&&actual.v!==null){
-      var bc=insightColor(actual.v,budget.v,'budget');
-      overallColor=bc;
-      overallText=bc==='green'?'On Track':bc==='amber'?'Near Target':'Off Track';
-    } else if(previous.v!==null&&actual.v!==null){
-      var vc=insightColor(actual.v,previous.v,'variance');
-      overallColor=vc;
-      overallText=vc==='green'?'Ahead':'Behind';
-    }
-    var badge=$('status-badge');
-    applyColor(['status-badge'],overallColor);
-    badge.textContent=overallText;
+    /* status pill */
+    setColor($('status-pill'), overallClr);
+    $('status-pill').textContent = statusText;
 
-    /* ── hero ── */
-    $('hero-val').textContent=actual.fmt||fmtMoney(actual.v);
+    /* hero */
+    $('hero-val').textContent = actualFmt || fmtMoney(actualV);
 
-    /* ── delta pill ── */
-    var pill=$('delta-pill');
-    if(momDelta!==null){
-      var up=momDelta>=0;
-      var pillColor=up?'green':'red';
-      applyColor(['delta-pill'],pillColor);
-      pill.innerHTML=arrowPath(up)+' <span style="margin-left:3px">'+(up?'+':'')+fmtMoney(momDelta)+'&nbsp;&nbsp;'+(up?'+':'')+fmtPct(momPct)+'</span>';
-      $('vs-label').textContent=previous.field?'vs '+pretty(previous.field):'vs last month';
+    /* delta chip */
+    var chipClr = momDelta !== null ? varColor(momDelta) : 'gray';
+    setColor($('delta-chip'), chipClr);
+    if (momDelta !== null) {
+      var up = momDelta >= 0;
+      $('delta-arrow').innerHTML = arrowSVG(up, 11);
+      $('delta-text').textContent = (up ? '+' : '') + fmtMoney(momDelta) + '  ' + (up ? '+' : '-') + fmtPct(momPct);
+      $('vs-text').textContent = 'vs ' + (pretty('previous') || 'last month');
     } else {
-      applyColor(['delta-pill'],'gray');
-      pill.textContent='No comparison data';
-      $('vs-label').textContent='';
+      $('delta-arrow').innerHTML = '';
+      $('delta-text').textContent = 'No prior data';
+      $('vs-text').textContent = '';
     }
 
-    /* ── VARIANCE TILE ── */
-    var varColor= momDelta!==null ? (momDelta>=0?'green':'red') : 'gray';
-    applyColor(['var-tile','var-icon'],varColor);
-    $('var-icon').innerHTML=momDelta!==null?arrowPath(momDelta>=0):'';
-    $('var-val').textContent=momDelta!==null?(momDelta>=0?'+':'')+fmtMoney(momDelta):'—';
-    $('var-sub').textContent=momDelta!==null
-      ? (momDelta>=0?'▲ ':'▼ ')+fmtPct(momPct)+' vs '+(previous.field?pretty(previous.field):'last month')
-      : 'no prior data';
+    /* variance tile */
+    var vClr = momDelta !== null ? varColor(momDelta) : 'gray';
+    setColor($('var-tile'), vClr);
+    $('var-arrow').innerHTML = momDelta !== null ? arrowSVG(momDelta >= 0, 13) : '';
+    $('var-val').textContent = momDelta !== null ? (momDelta >= 0 ? '+' : '') + fmtMoney(momDelta) : '—';
+    $('var-sub').textContent = momPct !== null
+      ? (momDelta >= 0 ? '▲ ' : '▼ ') + fmtPct(momPct) + ' vs ' + (pretty('previous') || 'last month')
+      : 'Drop Previous Month field';
 
-    /* ── BUDGET TILE ── */
-    var budColor=insightColor(actual.v,budget.v,'budget');
-    applyColor(['bud-tile','bud-icon'],budColor);
-    if(budget.v!==null){
-      var budUp=actual.v>=budget.v;
-      $('bud-icon').innerHTML=arrowPath(budUp);
-      $('bud-val').textContent=budget.fmt||fmtMoney(budget.v);
-      var diffPct=budget.v!==0?Math.abs(budPct-100).toFixed(1):null;
-      $('bud-sub').textContent=diffPct!==null
-        ? (budUp?'▲ ':'▼ ')+diffPct+'% '+(budUp?'above':'below')+' target'
-        : 'target';
+    /* budget tile */
+    var bClr = budgetV !== null ? budColor(actualV, budgetV) : 'gray';
+    setColor($('bud-tile'), bClr);
+    $('bud-arrow').innerHTML = budgetV !== null ? arrowSVG(actualV >= budgetV, 13) : '';
+    $('bud-val').textContent = budgetFmt || fmtMoney(budgetV) || '—';
+    if (budDeltaPct !== null) {
+      var abovBelow = budDeltaPct >= 0 ? 'above' : 'below';
+      $('bud-sub').textContent = (budDeltaPct >= 0 ? '▲ ' : '▼ ') + fmtPct(budDeltaPct) + ' ' + abovBelow + ' target';
     } else {
-      $('bud-icon').innerHTML='';
-      $('bud-val').textContent='—';
-      $('bud-sub').textContent='no budget set';
+      $('bud-sub').textContent = 'Drop Budget / Target field';
     }
 
-    /* ── ATTAINMENT BAR ── */
-    var attain=$('attain');
-    if(budget.v!==null&&budget.v!==0&&actual.v!==null){
-      attain.style.display='';
-      var fillPct=Math.min(Math.max((actual.v/budget.v)*100,0),100);
-      var barColor=budColor;
-
-      applyColor(['attain-pct','track-fill'],barColor);
-      $('attain-pct').textContent=Math.round((actual.v/budget.v)*100)+'%';
-      $('track-fill').style.width=fillPct+'%';
-      $('attain-target').textContent='Target '+( budget.fmt||fmtMoney(budget.v));
+    /* attainment bar */
+    if (attainPct !== null) {
+      $('attain').style.display = '';
+      var fillW = Math.min(Math.max(attainPct, 0), 100);
+      setColor($('attain-pct'),  bClr);
+      setColor($('track-fill'),  bClr);
+      $('attain-pct').textContent  = Math.round(attainPct) + '%';
+      $('track-fill').style.width  = fillW + '%';
+      $('attain-foot-r').textContent = 'Target ' + (budgetFmt || fmtMoney(budgetV));
     } else {
-      attain.style.display='none';
+      $('attain').style.display = 'none';
     }
   }
+
+  /* ── Init — identical flow to working Neon Donut ─────────────── */
+  window.onload = tableau.extensions.initializeAsync().then(function() {
+    var ws = tableau.extensions.worksheetContent.worksheet;
+    var update = async function() {
+      var data      = await getSummaryData(ws);
+      var encodings = await getEncodingMap(ws);
+      render(data, encodings);
+    };
+    ws.addEventListener(tableau.TableauEventType.SummaryDataChanged, update);
+    update();
+  });
 
 })();
 </script>
